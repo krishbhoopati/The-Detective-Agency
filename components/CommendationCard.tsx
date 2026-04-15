@@ -7,9 +7,10 @@ interface CommendationCardProps {
   text: string;
   caseTitle: string;
   learningSummary: string;
+  isLoading?: boolean;
 }
 
-export default function CommendationCard({ text, caseTitle, learningSummary }: CommendationCardProps) {
+export default function CommendationCard({ text, caseTitle, learningSummary, isLoading }: CommendationCardProps) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
 
@@ -28,6 +29,25 @@ export default function CommendationCard({ text, caseTitle, learningSummary }: C
     }, 28);
     return () => clearInterval(interval);
   }, [text]);
+
+  if (isLoading) {
+    return (
+      <div
+        className="rounded-lg p-8 border-2 max-w-2xl mx-auto text-center"
+        style={{ backgroundColor: "var(--noir-paper)", borderColor: "var(--noir-sepia)", color: "var(--noir-dark)" }}
+        role="status"
+        aria-live="polite"
+        aria-label="Generating commendation"
+      >
+        <p
+          className="text-2xl italic animate-pulse"
+          style={{ fontFamily: "'Special Elite', serif", color: "var(--noir-dark)" }}
+        >
+          Analyzing evidence…
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -100,7 +120,7 @@ export default function CommendationCard({ text, caseTitle, learningSummary }: C
               fontFamily: "'Special Elite', serif",
             }}
           >
-            ← Next Assignment
+            Return to Cases
           </Link>
           <Link
             href="/archive"
@@ -115,7 +135,7 @@ export default function CommendationCard({ text, caseTitle, learningSummary }: C
               fontFamily: "'Special Elite', serif",
             }}
           >
-            View Case Archive →
+            View Archive
           </Link>
         </div>
       )}

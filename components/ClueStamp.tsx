@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface ClueStampProps {
   label: string;
   explanation: string;
@@ -7,6 +9,11 @@ interface ClueStampProps {
 }
 
 export default function ClueStamp({ label, explanation, onDismiss }: ClueStampProps) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 3000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"

@@ -24,7 +24,7 @@ export default function DeductionBuilder({ options, onSubmit, disabled }: Deduct
       onSubmit(true);
     } else {
       setFeedback(
-        "Not quite, Detective. Re-examine the evidence — the clues tell a different story."
+        "The evidence points elsewhere, Detective. Look again."
       );
       setSelected(null);
     }

@@ -122,6 +122,15 @@ export default function EvidenceViewer({
       >
         Tap suspicious areas of the evidence to mark clues
       </p>
+
+      <p
+        className="mt-4 text-center font-bold"
+        style={{ fontSize: "22px", color: "var(--noir-cream)" }}
+        aria-live="polite"
+        aria-label={`${foundClues.length} of ${hotspots.length} clues found`}
+      >
+        Clues Found: {foundClues.length} of {hotspots.length}
+      </p>
     </div>
   );
 }

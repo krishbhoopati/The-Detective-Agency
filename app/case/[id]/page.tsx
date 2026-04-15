@@ -260,23 +260,6 @@ export default function CasePage() {
         {/* ─── STEP: INVESTIGATION ─── */}
         {step === "investigation" && (
           <section aria-label="Evidence investigation">
-            {/* Clue counter */}
-            <div
-              className="flex items-center justify-between mb-6 px-4 py-3 rounded-lg"
-              style={{ backgroundColor: "var(--noir-medium)" }}
-            >
-              <span className="text-base" style={{ color: "#aaa" }}>
-                Clues Found
-              </span>
-              <span
-                className="text-xl font-bold"
-                style={{ color: foundClues.length >= caseData.min_clues_to_deduce ? "var(--noir-sepia)" : "var(--noir-cream)" }}
-                aria-label={`${foundClues.length} of ${caseData.hotspots.length} clues found`}
-              >
-                {foundClues.length} / {caseData.hotspots.length}
-              </span>
-            </div>
-
             <EvidenceViewer
               evidence={caseData.evidence}
               hotspots={caseData.hotspots}
@@ -342,6 +325,7 @@ export default function CasePage() {
               </div>
             )}
 
+
             <InterrogationChat
               inconsistenciesFound={inconsistenciesFound}
               onInconsistencyFound={handleInterrogationInconsistency}
@@ -353,22 +337,12 @@ export default function CasePage() {
         {/* ─── STEP: COMMENDATION ─── */}
         {step === "commendation" && (
           <section aria-label="Case commendation">
-            {commendationLoading ? (
-              <div
-                className="text-center py-12"
-                style={{ color: "var(--noir-sepia)" }}
-                aria-label="Generating your commendation"
-                aria-live="polite"
-              >
-                <p className="text-xl italic">The Chief is reviewing your work…</p>
-              </div>
-            ) : (
-              <CommendationCard
-                text={commendation}
-                caseTitle={caseData.title}
-                learningSummary={caseData.learning_summary}
-              />
-            )}
+            <CommendationCard
+              text={commendation}
+              caseTitle={caseData.title}
+              learningSummary={caseData.learning_summary}
+              isLoading={commendationLoading}
+            />
           </section>
         )}
       </div>
