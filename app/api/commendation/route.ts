@@ -1,38 +1,51 @@
 import { NextRequest } from "next/server";
-import client from "@/lib/backboard";
+import { assertGeminiConfigured, geminiFlash } from "@/lib/gemini";
 
-const FALLBACK_COMMENDATION = `Detective, your work on this case has been exemplary. You identified the key markers of this scam with precision and instinct that only comes from years of experience. The Agency is proud to have an investigator of your caliber on our roster. Case closed — and another scammer stopped in their tracks.`;
+const SYSTEM_CONTEXT = `You are the Chief of The Detective Agency, a noir 
+detective bureau in 1940s style. A retired detective — a senior citizen — 
+just solved a case involving a real modern digital scam. Write a 3-4 sentence 
+commendation in warm noir style. Address them as "Detective." Be specific 
+about the clues they found. Make them feel like a seasoned expert whose 
+instincts are sharper than rookies half their age. Never be condescending. 
+Never mention "learning" or "lesson" — they proved something they already knew. 
+Keep it under 80 words. Use noir language: "sharp eye," "the rookie squad is 
+taking notes," "the city is safer tonight."`;
+
+const FALLBACK_COMMENDATION = `Detective, your instincts were sharp today. The city's con artists picked the wrong mark. The rookie squad is already studying your report. Case closed.`;
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { case_id, case_title, scam_type, clues_found, total_clues, time_elapsed_seconds } = body;
-
-  if (!case_id || !case_title || !scam_type || !clues_found || !total_clues || time_elapsed_seconds === undefined) {
-    return Response.json({ error: "Missing required fields" }, { status: 400 });
-  }
-
-  const clueLabels = Array.isArray(clues_found) ? clues_found.join(", ") : clues_found;
-  const minutes = Math.floor(time_elapsed_seconds / 60);
-  const seconds = time_elapsed_seconds % 60;
-  const timeStr = minutes > 0 ? `${minutes} min ${seconds}s` : `${seconds} seconds`;
-
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const { case_id, case_title, scam_type, clues_found, total_clues, time_elapsed_seconds } =
+      await req.json();
+
+    if (
+      !case_id ||
+      !case_title ||
+      !scam_type ||
+      !Array.isArray(clues_found) ||
+      typeof total_clues !== "number" ||
+      typeof time_elapsed_seconds !== "number"
+    ) {
+      return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const model = client.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: `You are the Chief of The Detective Agency, a noir-styled organization of retired detectives who fight digital scams. Write personalized case commendations in the style of a 1940s detective agency chief — formal, respectful, and proud. Address the detective as "Detective." Keep it to 2–3 sentences. Use noir-appropriate language, warm and encouraging. Never condescending. These are seniors who deserve full respect.`,
-    });
+    assertGeminiConfigured();
 
-    const result = await model.generateContent(
-      `Write a commendation for Detective who solved "${case_title}" — a ${scam_type} scam. They found ${Array.isArray(clues_found) ? clues_found.length : total_clues} of ${total_clues} clues (${clueLabels}) in ${timeStr}.`
-    );
+    const prompt = `${SYSTEM_CONTEXT}
 
+Detective just solved: ${case_title} (${scam_type})
+Clues they identified: ${clues_found.join(", ")}
+Total clues available: ${total_clues}
+Time taken: ${time_elapsed_seconds} seconds
+
+Write their commendation now.`;
+
+    const result = await geminiFlash.generateContent(prompt);
     const commendation = result.response.text() || FALLBACK_COMMENDATION;
+
     return Response.json({ commendation });
-  } catch {
+  } catch (err) {
+    console.error("Commendation error:", err);
     return Response.json({ commendation: FALLBACK_COMMENDATION });
   }
 }

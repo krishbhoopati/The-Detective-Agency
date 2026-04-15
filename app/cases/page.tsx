@@ -60,8 +60,11 @@ export default function CasesPage() {
           {cases.map((c) => (
             <CaseFolder
               key={c.id}
-              caseData={c}
-              solved={solvedIds.has(c.id)}
+              case_id={c.id}
+              title={c.title}
+              scam_type={c.scam_type}
+              isCompleted={solvedIds.has(c.id)}
+              isTutorial={c.is_tutorial}
               onClick={() => router.push(`/case/${c.id}`)}
             />
           ))}

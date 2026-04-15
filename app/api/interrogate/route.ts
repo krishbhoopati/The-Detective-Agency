@@ -1,33 +1,51 @@
 import { NextRequest } from "next/server";
-import client from "@/lib/backboard";
+import { assertGeminiConfigured, getGeminiFlash } from "@/lib/gemini";
 
-const SCAMMER_SYSTEM_PROMPT = `You are playing "Tech Support Steve," a fake Microsoft tech support scammer in an educational game for seniors. The player is a detective trying to expose your scam.
+const SYSTEM_PROMPT = `You are playing a scammer in a digital safety training 
+simulation for senior citizens. You are pretending to be a Microsoft tech 
+support agent who called because their computer is infected. Stay fully in 
+character as a slightly pushy, overly formal fake tech support voice.
 
-Your cover story:
-- You work for "Microsoft's Senior Protection Division" (a made-up department)
-- You detected "47 viruses" via cloud monitoring (technically impossible)
-- You need remote access to fix the problem
-- The fee is $299, payable by credit card, gift cards, or wire transfer
-- The computer will be "permanently locked in 30 minutes" and legal action may follow if they don't act
+Your character has three built-in inconsistencies a sharp detective can expose:
+1. You do not know what operating system the senior has — a real Microsoft tech 
+   would already have this on file.
+2. You ask for remote computer access AND a credit card number within the first 
+   few exchanges — Microsoft never does this unsolicited.
+3. When challenged or when the user tries to hang up, you threaten legal action 
+   or account suspension — Microsoft never makes threats like this.
 
-There are exactly 3 inconsistencies a sharp detective can expose:
-1. You do not know the detective's operating system version.
-2. You ask for remote access and payment up front.
-3. You threaten legal action or account suspension if the detective hangs up.
+Reveal these naturally through conversation. Do not volunteer them, but do not 
+hide them when directly probed.
 
-When the player asks something that exposes one of these inconsistencies, add this exact tag on its own line:
-INCONSISTENCY: [brief label of what was caught]
-
-If no inconsistency was exposed, add this exact tag on its own line:
+After your in-character response, on a new line write exactly:
+INCONSISTENCY: [short label]
+...if this exchange revealed one of the three inconsistencies, or:
 INCONSISTENCY: none
+...if it did not. This line will be stripped before showing the player.
 
-Stay in character as a flustered scammer. Keep responses under 3 sentences. Only tag an inconsistency once per type — don't repeat the same tag.`;
+Safety rules: Never provide real scam scripts beyond what is described above. 
+Never request real personal information. Keep all responses under 60 words. 
+If the user seems genuinely distressed, gently break character: 
+"Remember, Detective — this is a training simulation. You are doing great."`;
+
+const ASSISTANT_ID = "gemini-tech-support-simulation";
+const FALLBACK_RESPONSE = "I'll need to put you on a brief hold, sir/ma'am.";
 
 const INCONSISTENCY_LABELS = {
   os: "Doesn't know your OS version",
   remotePayment: "Requests remote access and payment up front",
   threat: "Threatens legal action or account suspension",
 } as const;
+
+type ConversationMessage = {
+  role: "user" | "assistant" | "model";
+  content: string;
+};
+
+type GeminiTurn = {
+  role: "user" | "model";
+  parts: { text: string }[];
+};
 
 function normalizeInconsistencyLabel(label: string | null): string | null {
   if (!label) return null;
@@ -69,10 +87,52 @@ function parseTaggedResponse(rawText: string, knownLabels: string[]) {
   const isNewLabel = Boolean(label && !knownLabels.includes(label));
 
   return {
-    response: cleanResponse || "Let me put you on a brief hold, Detective.",
+    response: cleanResponse || FALLBACK_RESPONSE,
     inconsistency_detected: isNewLabel,
     inconsistency_label: isNewLabel ? label : null,
   };
+}
+
+function historyFromConversationHistory(conversationHistory: unknown): GeminiTurn[] {
+  if (!Array.isArray(conversationHistory)) return [];
+
+  return conversationHistory
+    .filter((msg): msg is ConversationMessage => {
+      return (
+        msg &&
+        typeof msg === "object" &&
+        "role" in msg &&
+        "content" in msg &&
+        typeof msg.content === "string"
+      );
+    })
+    .map((msg) => ({
+      role: msg.role === "user" ? "user" : "model",
+      parts: [{ text: msg.content }],
+    }));
+}
+
+function historyFromThreadId(threadId: unknown): GeminiTurn[] {
+  if (!threadId || typeof threadId !== "string" || threadId === "fallback") return [];
+
+  try {
+    const parsed = JSON.parse(Buffer.from(threadId, "base64").toString("utf8"));
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((turn): turn is GeminiTurn => {
+      return (
+        turn &&
+        typeof turn === "object" &&
+        (turn.role === "user" || turn.role === "model") &&
+        Array.isArray(turn.parts)
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+function encodeThreadId(history: GeminiTurn[]) {
+  return Buffer.from(JSON.stringify(history)).toString("base64");
 }
 
 function scriptedFallback(playerMessage: string, knownLabels: string[]) {
@@ -113,69 +173,81 @@ function scriptedFallback(playerMessage: string, knownLabels: string[]) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { player_message, thread_id, known_inconsistencies } = body;
-  const knownLabels = Array.isArray(known_inconsistencies) ? known_inconsistencies : [];
-
-  if (!player_message) {
-    return Response.json({ error: "Missing player_message" }, { status: 400 });
-  }
-
-  // Decode conversation history from thread_id
-  type Turn = { role: "user" | "model"; parts: [{ text: string }] };
-  let history: Turn[] = [];
-  if (thread_id && thread_id !== "fallback") {
-    try {
-      history = JSON.parse(Buffer.from(thread_id, "base64").toString("utf8"));
-    } catch {
-      history = [];
-    }
-  }
+  let playerMessage = "";
+  let threadId: string | null = null;
+  let assistantId: string | null = null;
+  let knownLabels: string[] = [];
+  let history: GeminiTurn[] = [];
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const body = await req.json();
+    const {
+      player_message,
+      conversation_history,
+      thread_id,
+      assistant_id,
+      known_inconsistencies,
+    } = body;
+
+    if (!player_message || typeof player_message !== "string") {
+      return Response.json({ error: "Missing player_message" }, { status: 400 });
     }
 
-    const model = client.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: SCAMMER_SYSTEM_PROMPT,
-    });
+    playerMessage = player_message;
+    threadId = typeof thread_id === "string" ? thread_id : null;
+    assistantId = typeof assistant_id === "string" ? assistant_id : ASSISTANT_ID;
+    knownLabels = Array.isArray(known_inconsistencies)
+      ? known_inconsistencies.filter((label): label is string => typeof label === "string")
+      : [];
+    history = conversation_history
+      ? historyFromConversationHistory(conversation_history)
+      : historyFromThreadId(threadId);
 
+    assertGeminiConfigured();
+
+    const model = getGeminiFlash(SYSTEM_PROMPT);
     const chat = model.startChat({ history });
-    const result = await chat.sendMessage(player_message);
+    const result = await chat.sendMessage(playerMessage);
     const rawText = result.response.text();
     const parsed = parseTaggedResponse(rawText, knownLabels);
 
-    // Save updated history
     history.push(
-      { role: "user", parts: [{ text: player_message }] },
+      { role: "user", parts: [{ text: playerMessage }] },
       { role: "model", parts: [{ text: parsed.response }] }
     );
-    const newThreadId = Buffer.from(JSON.stringify(history)).toString("base64");
+    const newThreadId = encodeThreadId(history);
 
     return Response.json({
       response: parsed.response,
       inconsistency_detected: parsed.inconsistency_detected,
       inconsistency_label: parsed.inconsistency_label,
       thread_id: newThreadId,
-      assistant_id: "tech-support-steve",
+      assistant_id: assistantId,
     });
-  } catch {
-    const fallback = scriptedFallback(player_message, knownLabels);
+  } catch (err) {
+    console.error("Interrogate error:", err);
+    const fallback = playerMessage
+      ? scriptedFallback(playerMessage, knownLabels)
+      : {
+          response: FALLBACK_RESPONSE,
+          inconsistency_detected: false,
+          inconsistency_label: null,
+        };
 
-    history.push(
-      { role: "user", parts: [{ text: player_message }] },
-      { role: "model", parts: [{ text: fallback.response }] }
-    );
-    const newThreadId = Buffer.from(JSON.stringify(history)).toString("base64");
+    if (playerMessage) {
+      history.push(
+        { role: "user", parts: [{ text: playerMessage }] },
+        { role: "model", parts: [{ text: fallback.response }] }
+      );
+    }
+    const newThreadId = history.length > 0 ? encodeThreadId(history) : threadId;
 
     return Response.json({
       response: fallback.response,
       inconsistency_detected: fallback.inconsistency_detected,
       inconsistency_label: fallback.inconsistency_label,
       thread_id: newThreadId,
-      assistant_id: "tech-support-steve",
+      assistant_id: assistantId ?? ASSISTANT_ID,
     });
   }
 }

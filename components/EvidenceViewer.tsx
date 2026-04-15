@@ -1,81 +1,82 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { CaseData, Hotspot } from "@/lib/case-loader";
+import { motion } from "framer-motion";
+import type { Hotspot } from "@/lib/case-loader";
 
 interface EvidenceViewerProps {
-  evidence: CaseData["evidence"];
+  evidenceHtml: string;
   hotspots: Hotspot[];
   foundClues: string[];
-  onClueFound: (hotspot: Hotspot) => void;
-  onWrongClick: (message: string) => void;
+  onClueFound: (id: string) => void;
+  onWrongClick: () => void;
 }
 
-const EVIDENCE_LABELS: Record<string, string> = {
-  sms: "SMS Message",
-  email: "Email",
-  popup: "Browser Pop-up",
-  phone_sim: "Phone Simulator",
-};
+function scrubLinks(html: string) {
+  return html
+    .replace(/<a\b([^>]*)href=(["']).*?\2([^>]*)>/gi, "<span$1$3>")
+    .replace(/<\/a>/gi, "</span>");
+}
 
 export default function EvidenceViewer({
-  evidence,
+  evidenceHtml,
   hotspots,
   foundClues,
   onClueFound,
   onWrongClick,
 }: EvidenceViewerProps) {
-  const evidenceHtml = evidence.html
-    .replace(/<a\b([^>]*)href=(["']).*?\2([^>]*)>/gi, "<span$1$3>")
-    .replace(/<\/a>/gi, "</span>");
-
   const handleHotspotClick = (
     event: MouseEvent<HTMLButtonElement>,
     hotspot: Hotspot
   ) => {
     event.stopPropagation();
+
     if (foundClues.includes(hotspot.id)) {
-      onWrongClick("You already marked that clue, Detective.");
+      onWrongClick();
       return;
     }
-    onClueFound(hotspot);
+
+    try {
+      new Audio("/audio/typewriter.mp3").play().catch(() => {});
+    } catch {
+      // Audio is decorative. A blocked or missing file should not interrupt play.
+    }
+
+    onClueFound(hotspot.id);
   };
 
   return (
     <div className="w-full">
       <div
-        className="text-xl font-bold uppercase tracking-widest mb-3 px-1"
-        style={{ color: "var(--noir-sepia)" }}
-        aria-label={`Evidence type: ${EVIDENCE_LABELS[evidence.type]}`}
-      >
-        EXHIBIT A — {EVIDENCE_LABELS[evidence.type]}
-      </div>
-
-      <div
-        className="relative overflow-hidden border-2"
-        style={{ borderColor: "var(--noir-sepia)" }}
-        onClick={(event) => {
-          event.preventDefault();
-          onWrongClick("Nothing suspicious there, Detective. Keep scanning the evidence.");
+        className="relative mx-auto max-w-[580px] overflow-hidden border-2 shadow-2xl"
+        style={{
+          backgroundColor: "var(--noir-cream)",
+          borderColor: "var(--noir-sepia)",
+          boxShadow: "0 24px 70px rgba(0, 0, 0, 0.46)",
         }}
+        onClick={onWrongClick}
       >
-        {/* Evidence content */}
         <div
-          className="evidence-document relative"
-          dangerouslySetInnerHTML={{ __html: evidenceHtml }}
+          className="evidence-document relative p-3"
+          dangerouslySetInnerHTML={{ __html: scrubLinks(evidenceHtml) }}
           aria-label="Evidence document"
         />
 
-        {/* Hotspot overlays */}
         {hotspots.map((hotspot) => {
           const isFound = foundClues.includes(hotspot.id);
+
           return (
             <button
               key={hotspot.id}
+              type="button"
               onClick={(event) => handleHotspotClick(event, hotspot)}
-              aria-label={isFound ? `Clue already found: ${hotspot.label}` : `Tap to investigate this area`}
+              aria-label={
+                isFound
+                  ? `Clue found: ${hotspot.label}`
+                  : "Inspect this part of the evidence"
+              }
               aria-pressed={isFound}
-              className="absolute transition-all duration-200 group"
+              className="absolute cursor-crosshair transition-colors duration-200 focus-visible:outline-2"
               style={{
                 top: hotspot.position.top,
                 left: hotspot.position.left,
@@ -83,36 +84,26 @@ export default function EvidenceViewer({
                 height: hotspot.position.height,
                 minWidth: "60px",
                 minHeight: "60px",
-                backgroundColor: isFound
-                  ? "rgba(139, 0, 0, 0.15)"
-                  : "rgba(200, 169, 110, 0.0)",
-                border: isFound
-                  ? "2px solid rgba(139, 0, 0, 0.6)"
-                  : "2px solid transparent",
-                cursor: isFound ? "default" : "crosshair",
                 zIndex: 10,
-              }}
-              onMouseEnter={(e) => {
-                if (!isFound) {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(200, 169, 110, 0.2)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(200, 169, 110, 0.6)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isFound) {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(200, 169, 110, 0.0)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
-                }
+                backgroundColor: isFound
+                  ? "rgba(139, 0, 0, 0.08)"
+                  : "rgba(200, 169, 110, 0)",
+                border: isFound
+                  ? "2px solid rgba(139, 0, 0, 0.55)"
+                  : "2px solid transparent",
               }}
             >
               {isFound && (
-                <span
-                  className="absolute inset-0 flex items-center justify-center text-xl font-bold opacity-80 select-none pointer-events-none"
+                <motion.span
+                  initial={{ scale: 1.3, opacity: 0, rotate: -10 }}
+                  animate={{ scale: 1, opacity: 1, rotate: -7 }}
+                  transition={{ type: "spring", stiffness: 360, damping: 18 }}
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center font-typewriter text-[22px] font-bold uppercase tracking-widest"
                   style={{ color: "var(--noir-red)" }}
                   aria-hidden="true"
                 >
-                  NOTED
-                </span>
+                  ✓ Noted
+                </motion.span>
               )}
             </button>
           );
@@ -120,18 +111,9 @@ export default function EvidenceViewer({
       </div>
 
       <p
-        className="mt-3 text-center text-xl italic"
-        style={{ color: "var(--noir-cream)" }}
-        aria-label="Instruction: tap highlighted areas to find clues"
-      >
-        Tap suspicious areas of the evidence to mark clues
-      </p>
-
-      <p
         className="mt-4 text-center font-bold"
         style={{ fontSize: "22px", color: "var(--noir-cream)" }}
         aria-live="polite"
-        aria-label={`${foundClues.length} of ${hotspots.length} clues found`}
       >
         Clues Found: {foundClues.length} of {hotspots.length}
       </p>

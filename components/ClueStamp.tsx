@@ -1,66 +1,63 @@
 "use client";
 
 import { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface ClueStampProps {
   label: string;
   explanation: string;
-  onDismiss: () => void;
+  isVisible: boolean;
+  onDismiss?: () => void;
 }
 
-export default function ClueStamp({ label, explanation, onDismiss }: ClueStampProps) {
+export default function ClueStamp({
+  label,
+  explanation,
+  isVisible,
+  onDismiss,
+}: ClueStampProps) {
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 3000);
+    if (!isVisible) return;
+    const timer = setTimeout(() => onDismiss?.(), 3000);
     return () => clearTimeout(timer);
-  }, [onDismiss]);
+  }, [isVisible, onDismiss]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
-      onClick={onDismiss}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Clue found: ${label}`}
-    >
-      <div
-        className="max-w-sm w-full rounded-lg p-8 text-center"
-        style={{ backgroundColor: "var(--noir-paper)", color: "var(--noir-dark)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Red stamp */}
-        <div
-          className="stamp-animation inline-block border-4 px-6 py-3 mb-4 text-3xl font-bold tracking-widest rotate-[-8deg]"
-          style={{ borderColor: "var(--noir-red)", color: "var(--noir-red)" }}
-          aria-hidden="true"
-        >
-          NOTED
-        </div>
-
-        <h3
-          className="text-xl font-bold mb-3"
-        >
-          Clue Found: {label}
-        </h3>
-
-        <p className="text-xl leading-relaxed mb-6" style={{ color: "var(--text-on-paper-secondary)" }}>
-          {explanation}
-        </p>
-
-        <button
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.72)" }}
           onClick={onDismiss}
-          autoFocus
-          className="px-8 py-3 rounded font-bold text-xl transition-all hover:opacity-90 focus-visible:outline-2"
-          style={{
-            backgroundColor: "var(--noir-dark)",
-            color: "var(--noir-cream)",
-            minHeight: "60px",
-            minWidth: "160px",
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Clue found: ${label}`}
         >
-          Got it, Detective
-        </button>
-      </div>
-    </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 8 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md border-2 p-7 font-typewriter shadow-2xl"
+            style={{
+              backgroundColor: "var(--noir-dark)",
+              borderColor: "var(--noir-sepia)",
+              color: "var(--noir-cream)",
+            }}
+          >
+            <p
+              className="mb-3 text-[20px] font-bold uppercase leading-snug"
+              style={{ color: "var(--noir-sepia)" }}
+            >
+              {label}
+            </p>
+            <p className="text-[18px] leading-relaxed">{explanation}</p>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,151 +1,133 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 interface CommendationCardProps {
-  text: string;
+  commendation: string;
+  isLoading: boolean;
   caseTitle: string;
-  learningSummary: string;
-  isLoading?: boolean;
   onAddToArchive: () => void;
   onReturnToCases: () => void;
 }
 
 export default function CommendationCard({
-  text,
-  caseTitle,
-  learningSummary,
+  commendation,
   isLoading,
+  caseTitle,
   onAddToArchive,
   onReturnToCases,
 }: CommendationCardProps) {
-  const [displayed, setDisplayed] = useState("");
-  const [done, setDone] = useState(false);
+  const [typedText, setTypedText] = useState("");
+  const [isTyped, setIsTyped] = useState(false);
 
   useEffect(() => {
-    setDisplayed("");
-    setDone(false);
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i >= text.length) {
-        clearInterval(interval);
-        setDone(true);
+    if (isLoading) return;
+
+    setTypedText("");
+    setIsTyped(false);
+
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index >= commendation.length) {
+        clearInterval(timer);
+        setIsTyped(true);
         return;
       }
-      const nextCharacter = text[i];
-      setDisplayed((prev) => prev + nextCharacter);
-      i++;
-    }, 28);
-    return () => clearInterval(interval);
-  }, [text]);
 
-  if (isLoading) {
-    return (
-      <div
-        className="rounded-lg p-8 border-2 max-w-2xl mx-auto text-center"
-        style={{ backgroundColor: "var(--noir-paper)", borderColor: "var(--noir-sepia)", color: "var(--noir-dark)" }}
-        role="status"
-        aria-live="polite"
-        aria-label="Generating commendation"
-      >
-        <p
-          className="text-2xl italic animate-pulse"
-          style={{ color: "var(--noir-dark)" }}
-        >
-          One moment, Detective...
-        </p>
-      </div>
-    );
-  }
+      setTypedText((current) => current + commendation[index]);
+      index += 1;
+    }, 40);
+
+    return () => clearInterval(timer);
+  }, [commendation, isLoading]);
 
   return (
     <div
-      className="rounded-lg p-8 border-2 max-w-2xl mx-auto"
-      style={{ backgroundColor: "var(--noir-paper)", borderColor: "var(--noir-sepia)", color: "var(--noir-dark)" }}
-      role="article"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+      style={{
+        background:
+          "radial-gradient(ellipse at center, rgba(200,169,110,0.12), transparent 52%), var(--noir-dark)",
+      }}
+      role="dialog"
+      aria-modal="true"
       aria-label="Case commendation"
     >
-      {/* Red stamp header */}
-      <div className="text-center mb-6">
+      {isLoading ? (
+        <motion.p
+          animate={{ opacity: [0.45, 1, 0.45] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          className="font-typewriter text-[28px]"
+          style={{ color: "var(--noir-sepia)" }}
+          role="status"
+          aria-live="polite"
+        >
+          Analyzing evidence...
+        </motion.p>
+      ) : (
         <div
-          className="case-closed-stamp inline-block border-4 px-8 py-3 text-2xl font-bold tracking-widest mb-4"
-          style={{ borderColor: "var(--noir-red)", color: "var(--noir-red)" }}
-          aria-label="Case closed stamp"
+          className="w-full max-w-2xl border-2 p-6 text-center sm:p-8"
+          style={{
+            backgroundColor: "var(--noir-paper)",
+            borderColor: "var(--noir-sepia)",
+            color: "var(--noir-dark)",
+            boxShadow: "0 30px 90px rgba(0, 0, 0, 0.62)",
+          }}
         >
-          CASE CLOSED
-        </div>
-        <h2
-          className="text-2xl font-bold mt-2"
-          style={{ color: "var(--noir-dark)" }}
-        >
-          {caseTitle}
-        </h2>
-      </div>
-
-      {/* Typewriter commendation */}
-      <div
-        className="text-[22px] leading-relaxed mb-6 p-4 rounded border-l-4 min-h-[80px]"
-        style={{
-          borderLeftColor: "var(--noir-sepia)",
-          backgroundColor: "rgba(200, 169, 110, 0.1)",
-          fontStyle: "italic",
-          color: "var(--text-on-paper)",
-        }}
-        aria-live="polite"
-        aria-label="Commendation text"
-      >
-        {displayed}
-        {!done && (
-          <span aria-hidden="true" style={{ borderRight: "2px solid var(--noir-dark)" }}>
-            &nbsp;
-          </span>
-        )}
-      </div>
-
-      {/* Learning summary */}
-      <div
-        className="rounded p-4 mb-6 text-[22px]"
-        style={{ backgroundColor: "rgba(0,0,0,0.08)", color: "var(--text-on-paper-secondary)" }}
-      >
-        <p className="font-bold mb-1" style={{ color: "var(--noir-dark)" }}>
-          Key Takeaway:
-        </p>
-        <p>{learningSummary}</p>
-      </div>
-
-      {/* Actions */}
-      {done && (
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            type="button"
-            onClick={onAddToArchive}
-            className="flex-1 text-center py-4 rounded-lg font-bold text-xl transition-all hover:opacity-90 focus-visible:outline-2"
-            style={{
-              backgroundColor: "var(--noir-sepia)",
-              color: "var(--noir-dark)",
-              minHeight: "60px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+          <motion.div
+            initial={{ rotate: -12, scale: 1.4, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 230, damping: 14 }}
+            className="mx-auto mb-5 inline-block border-4 px-7 py-3 font-typewriter text-[32px] font-bold uppercase tracking-widest"
+            style={{ borderColor: "var(--noir-red)", color: "var(--noir-red)" }}
           >
-            Add to Archive
-          </button>
-          <button
-            type="button"
-            onClick={onReturnToCases}
-            className="flex-1 text-center py-4 rounded-lg font-bold text-xl transition-all hover:opacity-90 focus-visible:outline-2"
+            CASE CLOSED
+          </motion.div>
+
+          <h2 className="mb-6 text-[28px] font-bold leading-tight">{caseTitle}</h2>
+
+          <div
+            className="min-h-[150px] border-l-4 p-5 text-left text-[22px] italic leading-relaxed"
             style={{
-              backgroundColor: "var(--noir-dark)",
-              color: "var(--noir-cream)",
-              minHeight: "60px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderLeftColor: "var(--noir-sepia)",
+              backgroundColor: "rgba(200, 169, 110, 0.14)",
+              color: "var(--text-on-paper)",
             }}
+            aria-live="polite"
           >
-            Return to Cases
-          </button>
+            {typedText}
+            {!isTyped && (
+              <span aria-hidden="true" style={{ borderRight: "2px solid var(--noir-dark)" }}>
+                &nbsp;
+              </span>
+            )}
+          </div>
+
+          {isTyped && (
+            <div className="mt-7">
+              <button
+                type="button"
+                onClick={onAddToArchive}
+                className="w-full font-typewriter text-[22px] font-bold uppercase transition-transform duration-200 hover:-translate-y-0.5"
+                style={{
+                  minHeight: "64px",
+                  backgroundColor: "var(--noir-sepia)",
+                  color: "var(--noir-dark)",
+                }}
+              >
+                Add to Archive
+              </button>
+
+              <button
+                type="button"
+                onClick={onReturnToCases}
+                className="mt-4 inline-flex min-h-[60px] items-center justify-center px-3 text-[20px] underline-offset-4 hover:underline"
+                style={{ color: "var(--text-on-paper-secondary)" }}
+              >
+                Return to Cases
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

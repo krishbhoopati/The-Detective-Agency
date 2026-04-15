@@ -1,219 +1,234 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
-interface Message {
-  role: "player" | "scammer";
+export interface ConversationHistoryMessage {
+  role: "user" | "assistant";
   content: string;
-  inconsistency?: string;
+}
+
+interface DisplayMessage {
+  role: "detective" | "suspect";
+  content: string;
+  inconsistencyLabel?: string | null;
 }
 
 interface InterrogationChatProps {
   inconsistenciesFound: number;
-  onInconsistencyFound: (label: string) => void;
-  onComplete: () => void;
+  onSendMessage: (
+    msg: string,
+    conversationHistory?: ConversationHistoryMessage[]
+  ) => Promise<{
+    response: string;
+    inconsistency_detected: boolean;
+    inconsistency_label: string | null;
+  }>;
+  onInterrogationComplete: () => void;
 }
 
 export default function InterrogationChat({
   inconsistenciesFound,
-  onInconsistencyFound,
-  onComplete,
+  onSendMessage,
+  onInterrogationComplete,
 }: InterrogationChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
+  const [conversationHistory, setConversationHistory] = useState<
+    ConversationHistoryMessage[]
+  >([]);
+  const [displayMessages, setDisplayMessages] = useState<DisplayMessage[]>([
     {
-      role: "scammer",
+      role: "suspect",
       content:
-        "Hello! This is Tech Support Steve from Microsoft's Senior Protection Division. We've detected 47 viruses on your computer and I need to speak with you immediately about securing your system.",
+        "This is Microsoft support. Your machine is infected and I need your cooperation immediately.",
     },
   ]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [threadId, setThreadId] = useState<string | null>(null);
-  const [assistantId, setAssistantId] = useState<string | null>(null);
-  const [foundLabels, setFoundLabels] = useState<Set<string>>(new Set());
+  const [isSending, setIsSending] = useState(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  const send = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  useEffect(() => {
+    if (inconsistenciesFound !== 3 || completionTimerRef.current) return;
 
-    const playerMsg = input.trim();
+    completionTimerRef.current = setTimeout(() => {
+      onInterrogationComplete();
+    }, 2000);
+
+    return () => {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    };
+  }, [inconsistenciesFound, onInterrogationComplete]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [displayMessages, isSending]);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const playerMessage = input.trim();
+    if (!playerMessage || isSending || inconsistenciesFound >= 3) return;
+
+    const historyBeforeCurrent = conversationHistory;
     setInput("");
-    setMessages((prev) => [...prev, { role: "player", content: playerMsg }]);
-    setLoading(true);
+    setIsSending(true);
+    setDisplayMessages((current) => [
+      ...current,
+      { role: "detective", content: playerMessage },
+    ]);
 
     try {
-      const res = await fetch("/api/interrogate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          player_message: playerMsg,
-          thread_id: threadId,
-          assistant_id: assistantId,
-          known_inconsistencies: Array.from(foundLabels),
-        }),
-      });
+      const result = await onSendMessage(playerMessage, historyBeforeCurrent);
+      const assistantResponse =
+        result.response || "The line crackles, then goes quiet for a moment.";
 
-      const data = await res.json();
-      setThreadId(data.thread_id);
-      setAssistantId(data.assistant_id);
-
-      const newMsg: Message = {
-        role: "scammer",
-        content: data.response || "One moment, Detective. The line went quiet.",
-      };
-      if (data.inconsistency_detected && data.inconsistency_label && !foundLabels.has(data.inconsistency_label)) {
-        newMsg.inconsistency = data.inconsistency_label;
-        const nextCount = foundLabels.size + 1;
-        setFoundLabels((prev) => {
-          const updated = new Set(prev);
-          updated.add(data.inconsistency_label);
-          return updated;
-        });
-        onInconsistencyFound(data.inconsistency_label);
-
-        if (nextCount >= 3) {
-          setTimeout(() => onComplete(), 1500);
-        }
-      }
-
-      setMessages((prev) => [...prev, newMsg]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
+      setConversationHistory([
+        ...historyBeforeCurrent,
+        { role: "user", content: playerMessage },
+        { role: "assistant", content: assistantResponse },
+      ]);
+      setDisplayMessages((current) => [
+        ...current,
         {
-          role: "scammer",
-          content: "Uh... look, just trust me on this. I'm a Microsoft technician.",
+          role: "suspect",
+          content: assistantResponse,
+          inconsistencyLabel: result.inconsistency_detected
+            ? result.inconsistency_label
+            : null,
         },
       ]);
+    } catch {
+      const fallback =
+        "I am a certified technician, Detective. Please stay on the line.";
+      setConversationHistory([
+        ...historyBeforeCurrent,
+        { role: "user", content: playerMessage },
+        { role: "assistant", content: fallback },
+      ]);
+      setDisplayMessages((current) => [
+        ...current,
+        { role: "suspect", content: fallback },
+      ]);
     } finally {
-      setLoading(false);
-      setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      setIsSending(false);
     }
   };
 
   return (
     <div
-      className="rounded-lg border-2 overflow-hidden flex flex-col"
-      style={{ borderColor: "var(--noir-sepia)", backgroundColor: "var(--noir-medium)", maxHeight: "70vh" }}
+      className="overflow-hidden border-2 font-typewriter"
+      style={{
+        backgroundColor: "var(--noir-cream)",
+        borderColor: "var(--noir-sepia)",
+        color: "var(--noir-dark)",
+      }}
       role="log"
-      aria-label="Interrogation chat"
+      aria-label="Telephone interrogation transcript"
       aria-live="polite"
     >
-      {/* Header */}
       <div
-        className="px-5 py-3 flex flex-col gap-3 border-b sm:flex-row sm:items-center sm:justify-between"
-        style={{ borderColor: "var(--noir-sepia)", backgroundColor: "var(--noir-dark)" }}
+        className="flex flex-col gap-3 border-b-2 p-4 sm:flex-row sm:items-center sm:justify-between"
+        style={{
+          borderColor: "var(--noir-sepia)",
+          backgroundColor: "var(--noir-paper)",
+        }}
       >
-        <div>
-          <h3 className="font-bold text-xl" style={{ color: "var(--noir-sepia)" }}>
-            Interrogation Room
-          </h3>
-          <p className="text-xl" style={{ color: "var(--noir-cream)" }}>
-            Expose the scammer&apos;s lies
-          </p>
-        </div>
+        <h3 className="text-[24px] font-bold uppercase">Telephone Transcript</h3>
         <div
-          className="text-xl font-bold px-3 py-1 rounded"
-          style={{
-            backgroundColor: inconsistenciesFound >= 3 ? "var(--noir-red)" : "rgba(139,0,0,0.2)",
-            color: inconsistenciesFound >= 3 ? "white" : "var(--noir-red)",
-            border: "1px solid var(--noir-red)",
-          }}
-          aria-label={`Inconsistencies exposed: ${inconsistenciesFound} of 3`}
+          className="flex items-center gap-2"
+          aria-label={`${inconsistenciesFound} of 3 inconsistencies exposed`}
         >
-          Inconsistencies: {inconsistenciesFound} / 3
+          {[0, 1, 2].map((index) => (
+            <span
+              key={index}
+              className="h-5 w-5 rounded-full border-2"
+              style={{
+                backgroundColor:
+                  index < inconsistenciesFound ? "var(--noir-red)" : "transparent",
+                borderColor: "var(--noir-red)",
+              }}
+              aria-hidden="true"
+            />
+          ))}
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ minHeight: "200px" }}>
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "player" ? "justify-end" : "justify-start"}`}>
-            <div className="max-w-[80%]">
-              <div
-                className="px-4 py-3 rounded-lg text-xl leading-relaxed"
-                style={{
-                  backgroundColor:
-                    msg.role === "player"
-                      ? "var(--noir-sepia)"
-                      : "rgba(255,255,255,0.08)",
-                  color: msg.role === "player" ? "var(--noir-dark)" : "var(--noir-cream)",
-                  borderRadius:
-                    msg.role === "player"
-                      ? "18px 18px 4px 18px"
-                      : "18px 18px 18px 4px",
-                }}
+      {inconsistenciesFound >= 3 && (
+        <div
+          className="border-b-2 p-4 text-center text-[22px] font-bold uppercase"
+          style={{
+            borderColor: "var(--noir-sepia)",
+            backgroundColor: "var(--noir-red)",
+            color: "var(--noir-cream)",
+          }}
+          role="status"
+        >
+          INTERROGATION COMPLETE
+        </div>
+      )}
+
+      <div className="max-h-[440px] min-h-[260px] overflow-y-auto p-5">
+        <div className="space-y-5">
+          {displayMessages.map((message, index) => (
+            <div key={`${message.role}-${index}`}>
+              <p
+                className="mb-1 text-[18px] font-bold uppercase"
+                style={{ color: "var(--noir-red)" }}
               >
-                {msg.content}
-              </div>
-              {msg.inconsistency && (
-                <div
-                  className="mt-1 text-xl font-bold px-2 py-1 rounded"
-                  style={{ backgroundColor: "rgba(139,0,0,0.2)", color: "#ff9999" }}
-                  role="status"
-                  aria-label={`Inconsistency exposed: ${msg.inconsistency}`}
-                >
-                  ✓ Caught: {msg.inconsistency}
-                </div>
-              )}
-              <p className="text-xl mt-1 px-1" style={{ color: "var(--noir-cream)" }}>
-                {msg.role === "player" ? "You" : "Scammer"}
+                {message.role === "detective" ? "DETECTIVE:" : "SUSPECT:"}
               </p>
+              <p className="text-[18px] leading-relaxed">{message.content}</p>
+              {message.inconsistencyLabel && (
+                <p
+                  className="mt-2 inline-block border-2 px-3 py-1 text-[18px] font-bold"
+                  style={{
+                    borderColor: "var(--noir-red)",
+                    color: "var(--noir-red)",
+                  }}
+                >
+                  Exposed: {message.inconsistencyLabel}
+                </p>
+              )}
             </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div
-              className="px-4 py-3 rounded-lg text-xl italic"
-              style={{ backgroundColor: "rgba(255,255,255,0.08)", color: "var(--noir-cream)" }}
-              aria-label="Scammer is typing"
-            >
-              ...
-            </div>
-          </div>
-        )}
-        <div ref={endRef} />
+          ))}
+
+          {isSending && (
+            <p className="text-[18px] italic" style={{ color: "var(--text-on-paper-muted)" }}>
+              SUSPECT: ...
+            </p>
+          )}
+          <div ref={endRef} />
+        </div>
       </div>
 
-      {/* Input */}
       <form
-        onSubmit={send}
-        className="p-4 border-t flex flex-col gap-3 sm:flex-row"
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3 border-t-2 p-4 sm:flex-row"
         style={{ borderColor: "var(--noir-sepia)" }}
-        aria-label="Send interrogation message"
       >
-        <label htmlFor="interrogation-question" className="sr-only">
-          Your question for the suspect
+        <label htmlFor="interrogation-input" className="sr-only">
+          Ask the suspect a question
         </label>
         <input
-          id="interrogation-question"
-          type="text"
+          id="interrogation-input"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask the suspect a question..."
-          disabled={loading || inconsistenciesFound >= 3}
-          className="flex-1 rounded-lg px-4 py-3 text-xl border focus-visible:outline-2"
+          onChange={(event) => setInput(event.target.value)}
+          disabled={isSending || inconsistenciesFound >= 3}
+          placeholder="Ask the suspect a question, Detective..."
+          className="min-h-[56px] flex-1 border-2 px-4 text-[18px]"
           style={{
-            backgroundColor: "rgba(255,255,255,0.08)",
+            backgroundColor: "var(--noir-cream)",
             borderColor: "var(--noir-sepia)",
-            color: "var(--noir-cream)",
-            minHeight: "60px",
+            color: "var(--noir-dark)",
           }}
-          aria-label="Your question for the suspect"
         />
         <button
           type="submit"
-          disabled={!input.trim() || loading || inconsistenciesFound >= 3}
-          className="px-5 font-bold rounded-lg transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2"
+          disabled={!input.trim() || isSending || inconsistenciesFound >= 3}
+          className="min-h-[56px] px-5 text-[18px] font-bold uppercase disabled:cursor-not-allowed disabled:opacity-50"
           style={{
-            backgroundColor: "var(--noir-sepia)",
-            color: "var(--noir-dark)",
-            minHeight: "60px",
-            minWidth: "60px",
+            backgroundColor: "var(--noir-dark)",
+            color: "var(--noir-sepia)",
           }}
-          aria-label="Send message"
         >
           Send
         </button>

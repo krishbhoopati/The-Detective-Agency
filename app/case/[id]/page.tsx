@@ -9,7 +9,9 @@ import EvidenceViewer from "@/components/EvidenceViewer";
 import ClueStamp from "@/components/ClueStamp";
 import DeductionBuilder from "@/components/DeductionBuilder";
 import CommendationCard from "@/components/CommendationCard";
-import InterrogationChat from "@/components/InterrogationChat";
+import InterrogationChat, {
+  ConversationHistoryMessage,
+} from "@/components/InterrogationChat";
 import AudioController from "@/components/AudioController";
 
 type Step = "briefing" | "investigation" | "deduction" | "interrogation" | "commendation";
@@ -104,8 +106,10 @@ export default function CasePage() {
     }, 2000);
   };
 
-  const handleClueFound = (hotspot: Hotspot) => {
-    if (foundClues.includes(hotspot.id)) return;
+  const handleClueFound = (hotspotId: string) => {
+    if (!caseData) return;
+    const hotspot = caseData.hotspots.find((candidate) => candidate.id === hotspotId);
+    if (!hotspot || foundClues.includes(hotspot.id)) return;
     setWrongClickMessage(null);
     setFoundClues((prev) => [...prev, hotspot.id]);
     setActiveStamp(hotspot);
@@ -159,6 +163,38 @@ export default function CasePage() {
     if (inconsistencyLabels.includes(label)) return;
     setInconsistencyLabels((prev) => [...prev, label]);
     setInconsistenciesFound((count) => count + 1);
+  };
+
+  const sendInterrogationMessage = async (
+    message: string,
+    conversationHistory: ConversationHistoryMessage[] = []
+  ) => {
+    const res = await fetch("/api/interrogate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        player_message: message,
+        conversation_history: conversationHistory,
+        known_inconsistencies: inconsistencyLabels,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Interrogation request failed");
+    const data = (await res.json()) as {
+      response: string;
+      inconsistency_detected: boolean;
+      inconsistency_label: string | null;
+    };
+
+    if (
+      data.inconsistency_detected &&
+      data.inconsistency_label &&
+      !inconsistencyLabels.includes(data.inconsistency_label)
+    ) {
+      handleInterrogationInconsistency(data.inconsistency_label);
+    }
+
+    return data;
   };
 
   const handleAddToArchive = () => {
@@ -262,6 +298,7 @@ export default function CasePage() {
         <ClueStamp
           label={activeStamp.label}
           explanation={activeStamp.explanation}
+          isVisible={Boolean(activeStamp)}
           onDismiss={() => setActiveStamp(null)}
         />
       )}
@@ -343,11 +380,15 @@ export default function CasePage() {
         {step === "investigation" && (
           <section aria-label="Evidence investigation">
             <EvidenceViewer
-              evidence={caseData.evidence}
+              evidenceHtml={caseData.evidence.html}
               hotspots={caseData.hotspots}
               foundClues={foundClues}
               onClueFound={handleClueFound}
-              onWrongClick={showWrongClickMessage}
+              onWrongClick={() =>
+                showWrongClickMessage(
+                  "Nothing suspicious there, Detective. Keep scanning the evidence."
+                )
+              }
             />
 
             {wrongClickMessage && (
@@ -404,7 +445,8 @@ export default function CasePage() {
           <section aria-label="File your deduction report">
             <DeductionBuilder
               options={caseData.deduction_options}
-              onSubmit={handleDeductionCorrect}
+              isUnlocked
+              onDeductionFiled={handleDeductionCorrect}
             />
             <button
               onClick={() => setStep("investigation")}
@@ -454,8 +496,8 @@ export default function CasePage() {
 
             <InterrogationChat
               inconsistenciesFound={inconsistenciesFound}
-              onInconsistencyFound={handleInterrogationInconsistency}
-              onComplete={triggerCommendation}
+              onSendMessage={sendInterrogationMessage}
+              onInterrogationComplete={triggerCommendation}
             />
           </section>
         )}
@@ -464,9 +506,8 @@ export default function CasePage() {
         {step === "commendation" && (
           <section aria-label="Case commendation">
             <CommendationCard
-              text={commendation}
+              commendation={commendation}
               caseTitle={caseData.title}
-              learningSummary={caseData.learning_summary}
               isLoading={commendationLoading}
               onAddToArchive={handleAddToArchive}
               onReturnToCases={handleReturnToCases}
