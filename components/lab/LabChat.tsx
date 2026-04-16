@@ -140,7 +140,7 @@ export function LabChat({
 
   return (
     <div
-      className="flex h-full flex-col"
+      className="flex flex-1 min-h-0 flex-col"
       style={{ backgroundColor: "var(--noir-dark)" }}
     >
       {/* Header */}
@@ -149,12 +149,12 @@ export function LabChat({
         style={{ borderColor: "var(--noir-sepia)" }}
       >
         <p
-          className="font-typewriter text-[13px] font-bold uppercase tracking-widest"
+          className="font-typewriter text-[24px] font-bold uppercase tracking-widest"
           style={{ color: "var(--noir-sepia)" }}
         >
           The Informant — Tutor
         </p>
-        <p className="font-typewriter text-[11px] mt-0.5" style={{ color: "var(--noir-cream)", opacity: 0.6 }}>
+        <p className="font-typewriter text-[19px] mt-0.5" style={{ color: "var(--noir-cream)", opacity: 0.6 }}>
           {scenario.title}
         </p>
       </div>
@@ -169,13 +169,13 @@ export function LabChat({
         {messages.map((msg, i) => (
           <div key={i}>
             <p
-              className="mb-1 font-typewriter text-[13px] font-bold uppercase"
+              className="mb-1 font-typewriter text-[21px] font-bold uppercase"
               style={{ color: msg.role === "tutor" ? "var(--noir-sepia)" : "var(--noir-red)" }}
             >
               {msg.role === "tutor" ? "Tutor:" : "You:"}
             </p>
             <p
-              className="font-readable text-[18px] leading-relaxed"
+              className="font-readable text-[24px] leading-relaxed"
               style={{ color: "var(--noir-cream)" }}
             >
               {msg.content}
@@ -183,7 +183,7 @@ export function LabChat({
             {/* Prompt quality badge */}
             {msg.role === "user" && msg.promptQuality && (
               <span
-                className="mt-1 inline-block border px-2 py-0.5 font-typewriter text-[12px]"
+                className="mt-1 inline-block border px-2 py-0.5 font-typewriter text-[16px]"
                 style={{
                   borderColor: msg.promptQuality === "excellent" ? "#4a7c59" : "var(--noir-sepia)",
                   color: msg.promptQuality === "excellent" ? "#4a7c59" : "var(--noir-sepia)",
@@ -208,7 +208,7 @@ export function LabChat({
               Tutor:
             </p>
             <p
-              className="font-readable text-[18px]"
+              className="font-readable text-[22px]"
               style={{ color: "var(--noir-cream)", opacity: 0.5 }}
             >
               …
@@ -231,7 +231,7 @@ export function LabChat({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message or question…"
           disabled={isSending}
-          className="flex-1 border-2 px-4 py-3 font-readable text-[18px] focus:outline-none"
+          className="flex-1 border-2 px-4 py-4 font-readable text-[24px] focus:outline-none"
           style={{
             backgroundColor: "var(--noir-cream)",
             borderColor: "var(--noir-sepia)",
@@ -242,7 +242,7 @@ export function LabChat({
         <button
           type="submit"
           disabled={isSending || !input.trim()}
-          className="border-2 px-5 py-3 font-typewriter text-[16px] font-bold uppercase transition-opacity disabled:opacity-40"
+          className="border-2 px-6 py-4 font-typewriter text-[22px] font-bold uppercase transition-opacity disabled:opacity-40"
           style={{
             borderColor: "var(--noir-sepia)",
             backgroundColor: "var(--noir-dark)",

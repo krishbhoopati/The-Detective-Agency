@@ -1,13 +1,35 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import AudioController from "@/components/AudioController";
 import { DeskRotaryPhone } from "@/components/DeskRotaryPhone";
 import { DeskEvidenceRecorder } from "@/components/DeskEvidenceRecorder";
 import { DeskTeletypeManual } from "@/components/DeskTeletypeManual";
+import { LabContent } from "@/components/lab/LabContent";
 import { clearArchive } from "@/lib/archive";
+
+class LabErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; onError: () => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error("[LabErrorBoundary]", error);
+    this.props.onError();
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 const CHIEF_SCRIPT =
   "Welcome, Detective. Here is how it works. Click the Evidence Board to pick a case. Read the briefing, then look through the evidence to find the clues. Once you have found enough, name the scam and close the case. If you need help understanding AI or online tricks, open the Field Manual first. Ready for your next assignment? Pick up this phone. The city needs you.";
@@ -15,6 +37,7 @@ const CHIEF_SCRIPT =
 export default function Home() {
   const router = useRouter();
   const [showChiefDialog, setShowChiefDialog] = useState(false);
+  const [showLab, setShowLab] = useState(false);
 
   // Reset solved cases on each reload (testing mode)
   useEffect(() => {
@@ -121,7 +144,7 @@ export default function Home() {
         <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 sm:p-4 z-10">
           {/* Left: Literacy Manual */}
           <div className="flex items-center justify-center scale-[1.8] origin-center">
-            <DeskTeletypeManual onClick={() => router.push("/lab")} />
+            <DeskTeletypeManual onClick={() => setShowLab(true)} />
           </div>
 
           {/* Middle: Rotary Phone (The Chief) */}
@@ -134,6 +157,24 @@ export default function Home() {
             <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
           </div>
         </div>
+
+        {/* ── Lab Panel (opens within desk area) ── */}
+        <AnimatePresence>
+          {showLab && (
+            <motion.div
+              key="lab-overlay"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute inset-0 z-20 flex flex-col overflow-hidden"
+            >
+              <LabErrorBoundary onError={() => setShowLab(false)}>
+                <LabContent onClose={() => setShowLab(false)} />
+              </LabErrorBoundary>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── Chief's Dialog ── */}
@@ -207,6 +248,7 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+
     </main>
   );
 }

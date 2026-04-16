@@ -20,7 +20,7 @@ export function LabScenarioSelector({
       className="border-b-2 overflow-x-auto"
       style={{ borderColor: "var(--noir-sepia)", backgroundColor: "var(--noir-medium, #2a2a2a)" }}
     >
-      <div className="flex gap-2 px-4 py-3 min-w-max">
+      <div className="flex gap-3 px-4 py-3 min-w-max">
         {scenarios.map((scenario) => {
           const isSelected = scenario.id === selectedId;
           const isCompleted = completedIds.includes(scenario.id);
@@ -30,7 +30,7 @@ export function LabScenarioSelector({
               key={scenario.id}
               type="button"
               onClick={() => onSelect(scenario.id)}
-              className="flex min-h-[60px] min-w-[120px] flex-col items-center justify-center gap-1 border-2 px-4 py-2 transition-all"
+              className="flex min-h-[96px] min-w-[180px] flex-col items-center justify-center gap-1.5 border-2 px-5 py-4 transition-all"
               style={{
                 borderColor: isSelected ? "var(--noir-sepia)" : "rgba(200,169,110,0.3)",
                 backgroundColor: isSelected
@@ -41,13 +41,13 @@ export function LabScenarioSelector({
               aria-pressed={isSelected}
               aria-label={`${scenario.title}${isCompleted ? " — completed" : ""}`}
             >
-              <span className="text-[22px]" aria-hidden="true">
+              <span className="text-[36px]" aria-hidden="true">
                 {scenario.icon}
                 {isCompleted && (
-                  <span className="ml-1 text-[14px]" style={{ color: "#4a7c59" }}>✓</span>
+                  <span className="ml-1 text-[24px]" style={{ color: "#4a7c59" }}>✓</span>
                 )}
               </span>
-              <span className="font-typewriter text-[11px] text-center leading-tight whitespace-nowrap">
+              <span className="font-typewriter text-[19px] text-center leading-tight whitespace-nowrap">
                 {scenario.title}
               </span>
             </button>

@@ -28,13 +28,13 @@ export function ScenarioCompleteStamp({ scenarioTitle, onTryAnother }: ScenarioC
         style={{ borderColor: "var(--noir-sepia)" }}
       >
         <p
-          className="font-typewriter text-[13px] font-bold uppercase tracking-widest"
+          className="font-typewriter text-[22px] font-bold uppercase tracking-widest"
           style={{ color: "var(--noir-sepia)" }}
         >
           ✓ Scenario Complete
         </p>
         <p
-          className="font-typewriter text-[11px] mt-1"
+          className="font-typewriter text-[18px] mt-1"
           style={{ color: "var(--noir-cream)", opacity: 0.8 }}
         >
           {scenarioTitle}
@@ -44,7 +44,7 @@ export function ScenarioCompleteStamp({ scenarioTitle, onTryAnother }: ScenarioC
       <button
         type="button"
         onClick={onTryAnother}
-        className="w-full border-2 py-3 font-typewriter text-[14px] font-bold uppercase transition-opacity hover:opacity-80"
+        className="w-full border-2 py-4 font-typewriter text-[20px] font-bold uppercase transition-opacity hover:opacity-80"
         style={{
           borderColor: "var(--noir-sepia)",
           backgroundColor: "rgba(200,169,110,0.12)",

@@ -26,21 +26,19 @@ export const LAB_SCENARIOS: LabScenario[] = [
     icon: "📶",
     description: "Your phone lost its Wi-Fi connection. Let's get it back online step by step.",
     steps: [
-      { screenId: "home",             targetId: "settings-icon", label: "Open Settings"      },
-      { screenId: "settings_home",    targetId: "network-row",   label: "Network & Internet" },
-      { screenId: "settings_network", targetId: "wifi-row",      label: "Wi-Fi Menu"         },
-      { screenId: "settings_wifi",    targetId: "wifi-toggle",   label: "Enable Wi-Fi"       },
-      { screenId: "wifi_connected",   targetId: null,            label: "Connected!"         },
+      { screenId: "home",           targetId: "settings-icon", label: "Open Settings" },
+      { screenId: "settings_home",  targetId: "wifi-row",      label: "Tap Wi-Fi"     },
+      { screenId: "settings_wifi",  targetId: "wifi-toggle",   label: "Enable Wi-Fi"  },
+      { screenId: "wifi_connected", targetId: null,            label: "Connected!"    },
     ],
     tutor: {
       scenarioContext: `The user's simulated phone has no Wi-Fi. Your job is to guide them through:
 1. Tapping the Settings gear icon on the home screen
-2. Tapping "Network & Internet" in Settings
-3. Tapping "Wi-Fi" in the Network menu
-4. Toggling Wi-Fi ON
-5. They will see a "Connected" confirmation screen — celebrate!
+2. Tapping "Wi-Fi" in the Settings menu
+3. Toggling Wi-Fi ON
+4. They will see a "Connected" confirmation screen — celebrate!
 
-When they tap correctly, briefly celebrate and name the very next target precisely (e.g. "Now look for 'Network & Internet' — it has a globe icon.").
+When they tap correctly, briefly celebrate and name the very next target precisely (e.g. "Now look for 'Wi-Fi' in the Settings list.").
 When they tap wrong, gently redirect without frustration: "Not quite — look for the gray gear icon labelled Settings."
 Keep every response under 60 words.`,
       introMessage: `Good morning, Detective. Today's lesson: getting a phone back on Wi-Fi. Look at the simulated phone on the right — it says "No Internet." Do you see the gray gear icon on the home screen? That's the Settings app. Tap it to begin.`,
