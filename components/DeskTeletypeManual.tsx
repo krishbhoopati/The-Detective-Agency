@@ -15,7 +15,7 @@ export function DeskTeletypeManual({ className = "", onClick }: DeskTeletypeManu
       transition={{ duration: 0.6, delay: 0.4 }}
       onClick={onClick}
       className={`group relative flex flex-col items-center focus:outline-none ${className}`}
-      aria-label="Open Literacy Manual — LLM literacy field guide"
+      aria-label="Open The Lab — interactive digital literacy training"
     >
       {/* Book Body */}
       <div className="relative w-[200px] sm:w-[260px] h-[270px] sm:h-[340px] bg-[#4a90a4] border-[6px] border-stone-900 rounded-lg shadow-retro transition-all duration-300 group-hover:-translate-y-3 group-hover:shadow-retro-hover group-hover:border-yellow-500 z-10 rotate-[-2deg] flex flex-col items-center pt-8 px-4">
@@ -30,7 +30,7 @@ export function DeskTeletypeManual({ className = "", onClick }: DeskTeletypeManu
         <h2 className="font-retro text-white text-base sm:text-xl text-center mt-4 drop-shadow-md leading-relaxed">
           TELETYPE
           <br />
-          <span className="text-yellow-300 text-sm sm:text-lg">LLM LITERACY</span>
+          <span className="text-yellow-300 text-sm sm:text-lg">THE LAB</span>
         </h2>
 
         {/* Computer Illustration */}
@@ -60,7 +60,7 @@ export function DeskTeletypeManual({ className = "", onClick }: DeskTeletypeManu
       {/* Label */}
       <div className="mt-6 bg-black/90 border-4 border-stone-700 px-4 py-2 rounded z-20 group-hover:border-yellow-400 transition-colors">
         <span className="font-retro text-yellow-400 text-[10px] sm:text-sm whitespace-nowrap">
-          LITERACY MANUAL
+          THE LAB
         </span>
       </div>
     </motion.button>

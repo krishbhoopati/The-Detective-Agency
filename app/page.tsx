@@ -1,19 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import AudioController from "@/components/AudioController";
 import { DeskRotaryPhone } from "@/components/DeskRotaryPhone";
 import { DeskEvidenceRecorder } from "@/components/DeskEvidenceRecorder";
 import { DeskTeletypeManual } from "@/components/DeskTeletypeManual";
+import { clearArchive } from "@/lib/archive";
 
 const CHIEF_SCRIPT =
-  "Welcome, Detective. I've got a situation. Digital scams are targeting people who need our help most. Here at the Agency, you've got three stations. The Evidence Board shows your closed cases. The Teletype Manual gives you the field guide on AI and tech. And when you're ready — pick up this phone again and take your first assignment. The city needs you.";
+  "Welcome, Detective. Here is how it works. Click the Evidence Board to pick a case. Read the briefing, then look through the evidence to find the clues. Once you have found enough, name the scam and close the case. If you need help understanding AI or online tricks, open the Field Manual first. Ready for your next assignment? Pick up this phone. The city needs you.";
 
 export default function Home() {
   const router = useRouter();
   const [showChiefDialog, setShowChiefDialog] = useState(false);
+
+  // Reset solved cases on each reload (testing mode)
+  useEffect(() => {
+    clearArchive();
+  }, []);
   const [ttsLoading, setTtsLoading] = useState(false);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -114,18 +120,18 @@ export default function Home() {
         {/* 3-Column Desk Objects */}
         <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 sm:p-4 z-10">
           {/* Left: Literacy Manual */}
-          <div className="flex items-center justify-center scale-[1.3] origin-center">
-            <DeskTeletypeManual onClick={() => router.push("/literacy")} />
+          <div className="flex items-center justify-center scale-[1.8] origin-center">
+            <DeskTeletypeManual onClick={() => router.push("/lab")} />
           </div>
 
           {/* Middle: Rotary Phone (The Chief) */}
-          <div className="flex items-center justify-center scale-[1.3] origin-center">
+          <div className="flex items-center justify-center scale-[1.8] origin-center">
             <DeskRotaryPhone onClick={openChiefDialog} />
           </div>
 
           {/* Right: Evidence Board */}
-          <div className="flex items-center justify-center scale-[1.3] origin-center">
-            <DeskEvidenceRecorder onClick={() => router.push("/archive")} />
+          <div className="flex items-center justify-center scale-[1.8] origin-center">
+            <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
           </div>
         </div>
       </div>
@@ -134,75 +140,70 @@ export default function Home() {
       <AnimatePresence>
         {showChiefDialog && (
           <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+            onClick={closeChiefDialog}
+          >
+          <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="absolute top-1/2 left-[55%] -translate-y-1/2 w-[42%] max-w-[480px] z-[60]"
+            className="relative w-full max-w-[820px] max-h-[90vh] overflow-y-auto z-[61] pt-8"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative bg-[#0000aa] p-5 sm:p-8 border-[6px] border-white shadow-retro-dialog">
+            <div className="relative bg-[#00008a] p-8 border-[6px] border-white shadow-retro-dialog">
               {/* Dialog Header */}
-              <div className="absolute -top-6 left-6 bg-white px-4 py-2 border-[4px] border-black">
-                <span className="font-retro text-xs sm:text-sm text-black">CHIEF</span>
+              <div className="absolute -top-7 left-6 bg-white px-5 py-2 border-[4px] border-black">
+                <span className="font-retro text-base text-black tracking-widest">THE CHIEF</span>
               </div>
 
               {/* Close button */}
               <button
                 onClick={closeChiefDialog}
-                className="absolute top-3 right-3 w-10 h-10 bg-red-600 border-[4px] border-white text-white flex items-center justify-center hover:bg-red-500 font-retro text-sm"
+                className="absolute top-3 right-3 w-14 h-14 bg-red-600 border-[4px] border-white text-white flex items-center justify-center hover:bg-red-500 font-bold text-2xl"
                 aria-label="Close chief dialog"
               >
-                X
+                ✕
               </button>
 
-              {/* Portrait + Text */}
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4 items-center sm:items-start">
-                {/* Pixel Portrait */}
-                <div className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 bg-black border-[4px] border-white flex items-center justify-center overflow-hidden">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-stone-400 rounded-sm mt-4 sm:mt-5 relative">
-                    <div className="absolute top-2 left-2 w-2 h-2 bg-black" />
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-black" />
-                    <div className="absolute bottom-2 left-2 right-2 h-1.5 bg-black" />
-                  </div>
-                </div>
-
-                <p className="font-typewriter text-white text-base sm:text-xl leading-relaxed">
-                  &ldquo;{CHIEF_SCRIPT}&rdquo;
-                </p>
-              </div>
+              {/* Message */}
+              <p className="text-white text-3xl leading-[1.8] mt-6 font-sans font-medium">
+                {CHIEF_SCRIPT}
+              </p>
 
               {/* Actions */}
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
+              <div className="mt-8 flex flex-col gap-4">
                 {/* TTS Button */}
                 <button
                   onClick={playChiefBriefing}
                   disabled={ttsLoading}
-                  className="flex items-center gap-2 bg-black/60 border-4 border-yellow-500 px-4 py-2 hover:bg-yellow-500/20 transition-colors disabled:opacity-60 disabled:cursor-wait"
+                  className="flex items-center justify-center gap-3 bg-black/50 border-4 border-yellow-400 px-6 py-4 hover:bg-yellow-500/20 transition-colors disabled:opacity-60 disabled:cursor-wait w-full"
                   aria-label="Hear the Chief speak"
                 >
-                  <span className="text-xl" aria-hidden="true">
+                  <span className="text-2xl" aria-hidden="true">
                     {ttsLoading ? "⏳" : ttsPlaying ? "🔊" : "📞"}
                   </span>
-                  <span className="font-retro text-yellow-400 text-[9px] sm:text-xs">
-                    {ttsLoading ? "CONNECTING..." : ttsPlaying ? "PLAYING..." : "HEAR THE CHIEF"}
+                  <span className="font-retro text-yellow-300 text-sm tracking-widest">
+                    {ttsLoading ? "CONNECTING..." : ttsPlaying ? "PLAYING..." : "HEAR THIS READ ALOUD"}
                   </span>
                 </button>
 
                 {/* Take a Case CTA */}
                 <button
                   onClick={() => router.push("/cases")}
-                  className="bg-yellow-500 border-4 border-yellow-700 px-5 py-2 hover:bg-yellow-400 transition-colors"
+                  className="flex items-center justify-center bg-yellow-400 border-4 border-yellow-600 px-6 py-4 hover:bg-yellow-300 transition-colors w-full"
                   aria-label="Go to the cases page and take your first assignment"
                 >
-                  <span className="font-retro text-black text-[9px] sm:text-xs">
-                    TAKE A CASE →
+                  <span className="font-retro text-black text-sm tracking-widest">
+                    START A CASE →
                   </span>
                 </button>
               </div>
-
-              {/* Blinking cursor */}
-              <div className="absolute bottom-3 right-4 w-4 h-4 bg-white animate-pulse" aria-hidden="true" />
             </div>
+          </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
