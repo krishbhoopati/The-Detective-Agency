@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getArchive, clearArchive, ArchiveEntry } from "@/lib/archive";
+import { getArchive, ArchiveEntry } from "@/lib/archive";
 import AudioController from "@/components/AudioController";
 
 export default function ArchivePage() {
@@ -13,13 +13,6 @@ export default function ArchivePage() {
     setEntries(getArchive());
     setMounted(true);
   }, []);
-
-  const handleClear = () => {
-    if (confirm("Clear all closed case files? This cannot be undone.")) {
-      clearArchive();
-      setEntries([]);
-    }
-  };
 
   return (
     <main
@@ -121,8 +114,8 @@ export default function ArchivePage() {
                     style={{ borderLeftColor: "var(--noir-sepia)", color: "var(--text-on-paper)" }}
                     aria-label="Commendation excerpt"
                   >
-                    &ldquo;{entry.commendation.length > 100
-                      ? entry.commendation.slice(0, 100) + "..."
+                    &ldquo;{entry.commendation.length > 120
+                      ? entry.commendation.slice(0, 120) + "..."
                       : entry.commendation}&rdquo;
                   </p>
                 )}
@@ -138,19 +131,6 @@ export default function ArchivePage() {
                 </p>
               </article>
             ))}
-
-            {entries.length > 0 && (
-              <div className="text-center pt-4 md:col-span-2">
-                <button
-                  onClick={handleClear}
-                  className="inline-flex min-h-[60px] items-center px-4 text-xl hover:underline focus-visible:outline-2"
-                  style={{ color: "var(--noir-sepia)" }}
-                  aria-label="Clear all closed case files"
-                >
-                  Clear All Files
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

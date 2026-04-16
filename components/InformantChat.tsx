@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-interface InformantMessage {
+export interface InformantMessage {
   role: "user" | "assistant";
   content: string;
 }

@@ -2,25 +2,48 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getCaseById, CaseData } from "@/lib/case-loader";
+import { getAllCases } from "@/lib/case-loader";
 import { getArchive } from "@/lib/archive";
 import CaseFolder from "@/components/CaseFolder";
 import AudioController from "@/components/AudioController";
+import InformantChat, { InformantMessage } from "@/components/InformantChat";
 import { useEffect, useState } from "react";
-
-const CASE_IDS = ["case-001", "case-002", "case-003"];
 
 export default function CasesPage() {
   const router = useRouter();
-  const cases = CASE_IDS.map((caseId) => getCaseById(caseId)).filter(
-    (caseData): caseData is CaseData => Boolean(caseData)
-  );
+  const cases = getAllCases();
   const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
+  const [checkedTutorial, setCheckedTutorial] = useState(false);
 
   useEffect(() => {
     const archive = getArchive();
     setSolvedIds(new Set(archive.map((e) => e.case_id)));
-  }, []);
+
+    if (!localStorage.getItem("tutorial_complete")) {
+      router.push("/case/case-000");
+      return;
+    }
+
+    setCheckedTutorial(true);
+  }, [router]);
+
+  const sendInformantMessage = async (
+    message: string,
+    conversationHistory: InformantMessage[]
+  ) => {
+    const response = await fetch("/api/informant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        conversation_history: conversationHistory,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Informant request failed");
+    const data = (await response.json()) as { response?: string };
+    return data.response ?? "The wire went quiet, Detective. Try again in a moment.";
+  };
 
   return (
     <main
@@ -33,6 +56,7 @@ export default function CasesPage() {
       }}
     >
       <AudioController />
+      <InformantChat onSendMessage={sendInformantMessage} />
 
       <div className="max-w-6xl mx-auto relative z-10">
         <Link
@@ -56,19 +80,25 @@ export default function CasesPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {cases.map((c) => (
-            <CaseFolder
-              key={c.id}
-              case_id={c.id}
-              title={c.title}
-              scam_type={c.scam_type}
-              isCompleted={solvedIds.has(c.id)}
-              isTutorial={c.is_tutorial}
-              onClick={() => router.push(`/case/${c.id}`)}
-            />
-          ))}
-        </div>
+        {checkedTutorial ? (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {cases.map((c) => (
+              <CaseFolder
+                key={c.id}
+                case_id={c.id}
+                title={c.title}
+                scam_type={c.scam_type}
+                isCompleted={solvedIds.has(c.id)}
+                isTutorial={c.is_tutorial}
+                onClick={() => router.push(`/case/${c.id}`)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-[22px]" style={{ color: "var(--noir-cream)" }}>
+            Opening your first assignment...
+          </p>
+        )}
 
         <div className="mt-12 text-center">
           <Link

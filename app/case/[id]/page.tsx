@@ -13,6 +13,8 @@ import InterrogationChat, {
   ConversationHistoryMessage,
 } from "@/components/InterrogationChat";
 import AudioController from "@/components/AudioController";
+import InformantChat, { InformantMessage } from "@/components/InformantChat";
+import PhoneSimulator from "@/components/PhoneSimulator";
 
 type Step = "briefing" | "investigation" | "deduction" | "interrogation" | "commendation";
 
@@ -32,10 +34,16 @@ export default function CasePage() {
   const [inconsistenciesFound, setInconsistenciesFound] = useState(0);
   const [inconsistencyLabels, setInconsistencyLabels] = useState<string[]>([]);
   const [inactivityModal, setInactivityModal] = useState(false);
+  const [briefingAudioUrl, setBriefingAudioUrl] = useState<string | null>(null);
+  const [briefingAudioLoading, setBriefingAudioLoading] = useState(false);
+  const [briefingAudioMessage, setBriefingAudioMessage] = useState<string | null>(
+    null
+  );
 
   const startTimeRef = useRef<number>(Date.now());
   const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const briefingAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Load case data
   useEffect(() => {
@@ -55,6 +63,11 @@ export default function CasePage() {
     setCommendation("");
     setInconsistenciesFound(0);
     setInconsistencyLabels([]);
+    setBriefingAudioUrl(null);
+    setBriefingAudioLoading(false);
+    setBriefingAudioMessage(null);
+    briefingAudioRef.current?.pause();
+    briefingAudioRef.current = null;
   }, [id]);
 
   // Typewriter briefing
@@ -97,6 +110,47 @@ export default function CasePage() {
       if (wrongClickTimerRef.current) clearTimeout(wrongClickTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (briefingAudioUrl) URL.revokeObjectURL(briefingAudioUrl);
+    };
+  }, [briefingAudioUrl]);
+
+  const ringBriefingPhone = () => {
+    try {
+      const AudioContextCtor =
+        window.AudioContext ||
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AudioContextCtor) return;
+
+      const context = new AudioContextCtor();
+      const gain = context.createGain();
+      gain.connect(context.destination);
+      gain.gain.setValueAtTime(0.001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.07, context.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.48);
+
+      [0, 0.22].forEach((offset, index) => {
+        const oscillator = context.createOscillator();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(
+          index === 0 ? 440 : 520,
+          context.currentTime + offset
+        );
+        oscillator.connect(gain);
+        oscillator.start(context.currentTime + offset);
+        oscillator.stop(context.currentTime + offset + 0.16);
+      });
+
+      window.setTimeout(() => {
+        void context.close();
+      }, 700);
+    } catch {
+      // Decorative cue only. The briefing audio itself is handled below.
+    }
+  };
 
   const showWrongClickMessage = (message: string) => {
     setWrongClickMessage(message);
@@ -159,6 +213,59 @@ export default function CasePage() {
     }
   };
 
+  const playBriefing = async () => {
+    if (!caseData || briefingAudioLoading) return;
+
+    setBriefingAudioMessage(null);
+    ringBriefingPhone();
+
+    if (briefingAudioUrl) {
+      try {
+        briefingAudioRef.current?.pause();
+        const audio = new Audio(briefingAudioUrl);
+        briefingAudioRef.current = audio;
+        await audio.play();
+      } catch (err) {
+        console.error("Briefing audio replay error:", err);
+        setBriefingAudioMessage("Briefing audio could not start. Try again.");
+      }
+      return;
+    }
+
+    setBriefingAudioLoading(true);
+
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: caseData.briefing }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(data?.error ?? "Briefing audio failed");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setBriefingAudioUrl(url);
+
+      briefingAudioRef.current?.pause();
+      const audio = new Audio(url);
+      briefingAudioRef.current = audio;
+      await audio.play();
+    } catch (err) {
+      console.error("Briefing audio error:", err);
+      setBriefingAudioMessage(
+        "Briefing audio is waiting on ElevenLabs setup, Detective."
+      );
+    } finally {
+      setBriefingAudioLoading(false);
+    }
+  };
+
   const handleInterrogationInconsistency = (label: string) => {
     if (inconsistencyLabels.includes(label)) return;
     setInconsistencyLabels((prev) => [...prev, label]);
@@ -197,6 +304,24 @@ export default function CasePage() {
     return data;
   };
 
+  const sendInformantMessage = async (
+    message: string,
+    conversationHistory: InformantMessage[]
+  ) => {
+    const res = await fetch("/api/informant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        conversation_history: conversationHistory,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Informant request failed");
+    const data = (await res.json()) as { response?: string };
+    return data.response ?? "The wire went quiet, Detective. Try again in a moment.";
+  };
+
   const handleAddToArchive = () => {
     if (!caseData) return;
     saveCompletedCase({
@@ -205,8 +330,11 @@ export default function CasePage() {
       scam_type: caseData.scam_type,
       commendation,
       completed_at: new Date().toISOString(),
-      clues_found: foundClues.length,
+      clues_found: caseData.is_phone_sim ? caseData.min_clues_to_deduce : foundClues.length,
     });
+    if (caseData.is_tutorial) {
+      localStorage.setItem("tutorial_complete", "true");
+    }
     router.push("/cases");
   };
 
@@ -255,12 +383,23 @@ export default function CasePage() {
     );
   }
 
+  const isDeductionUnlocked =
+    caseData.is_phone_sim || foundClues.length >= caseData.min_clues_to_deduce;
+  const currentHint = caseData.is_tutorial
+    ? caseData.hotspots.find((hotspot) => !foundClues.includes(hotspot.id))
+        ?.tutorial_hint
+    : null;
+
   return (
     <main
       className="page-fade-in min-h-screen px-4 py-10"
       style={{ backgroundColor: "var(--noir-dark)" }}
     >
       <AudioController />
+      <InformantChat
+        caseContext={{ title: caseData.title, scam_type: caseData.scam_type }}
+        onSendMessage={sendInformantMessage}
+      />
 
       {/* Inactivity modal */}
       {inactivityModal && (
@@ -345,9 +484,29 @@ export default function CasePage() {
                 color: "var(--noir-cream)",
               }}
             >
-              <p className="text-xl font-bold uppercase tracking-widest mb-3" style={{ color: "var(--noir-sepia)" }}>
-                Case Briefing
-              </p>
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <p
+                  className="text-xl font-bold uppercase tracking-widest"
+                  style={{ color: "var(--noir-sepia)" }}
+                >
+                  Case Briefing
+                </p>
+                <button
+                  type="button"
+                  onClick={playBriefing}
+                  disabled={briefingAudioLoading}
+                  className="flex h-[60px] min-h-[60px] w-[60px] min-w-[60px] items-center justify-center text-[32px] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-2"
+                  style={{
+                    background: "transparent",
+                    border: "2px solid var(--noir-sepia)",
+                    color: "var(--noir-sepia)",
+                  }}
+                  aria-label="Hear this briefing read aloud"
+                  title="Listen to briefing"
+                >
+                  {briefingAudioLoading ? "⏳" : "📞"}
+                </button>
+              </div>
               <p>
                 {briefingText}
                 {briefingText.length < caseData.briefing.length && (
@@ -356,6 +515,16 @@ export default function CasePage() {
                   </span>
                 )}
               </p>
+              {briefingAudioMessage && (
+                <p
+                  className="mt-4 font-typewriter text-[18px]"
+                  style={{ color: "var(--noir-sepia)" }}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {briefingAudioMessage}
+                </p>
+              )}
             </div>
 
             <button
@@ -363,11 +532,11 @@ export default function CasePage() {
                 startTimeRef.current = Date.now();
                 setStep("investigation");
               }}
-              className="w-full py-5 rounded-lg text-xl font-bold transition-all hover:opacity-90 focus-visible:outline-2"
+              className="w-full py-5 rounded-lg font-typewriter text-[22px] font-bold transition-all hover:opacity-90 focus-visible:outline-2"
               style={{
                 backgroundColor: "var(--noir-sepia)",
                 color: "var(--noir-dark)",
-                minHeight: "60px",
+                minHeight: "64px",
               }}
               aria-label="Begin investigating the evidence"
             >
@@ -379,17 +548,44 @@ export default function CasePage() {
         {/* ─── STEP: INVESTIGATION ─── */}
         {step === "investigation" && (
           <section aria-label="Evidence investigation">
-            <EvidenceViewer
-              evidenceHtml={caseData.evidence.html}
-              hotspots={caseData.hotspots}
-              foundClues={foundClues}
-              onClueFound={handleClueFound}
-              onWrongClick={() =>
-                showWrongClickMessage(
-                  "Nothing suspicious there, Detective. Keep scanning the evidence."
-                )
-              }
-            />
+            {caseData.is_phone_sim && caseData.phone_sim_steps ? (
+              <PhoneSimulator
+                steps={caseData.phone_sim_steps}
+                onComplete={() => {
+                  setFoundClues(["phone-sim-complete"]);
+                  setStep("deduction");
+                }}
+              />
+            ) : (
+              <>
+                {caseData.is_tutorial && currentHint && (
+                  <div
+                    className="mb-4 border-2 p-4 font-typewriter text-[20px] leading-relaxed"
+                    style={{
+                      background: "var(--noir-red)",
+                      borderColor: "var(--noir-sepia)",
+                      color: "var(--noir-cream)",
+                    }}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    👆 {currentHint}
+                  </div>
+                )}
+
+                <EvidenceViewer
+                  evidenceHtml={caseData.evidence.html}
+                  hotspots={caseData.hotspots}
+                  foundClues={foundClues}
+                  onClueFound={handleClueFound}
+                  onWrongClick={() =>
+                    showWrongClickMessage(
+                      "Nothing suspicious there, Detective. Keep scanning the evidence."
+                    )
+                  }
+                />
+              </>
+            )}
 
             {wrongClickMessage && (
               <p
@@ -402,7 +598,7 @@ export default function CasePage() {
               </p>
             )}
 
-            {foundClues.length < caseData.min_clues_to_deduce && (
+            {!caseData.is_phone_sim && foundClues.length < caseData.min_clues_to_deduce && (
               <p
                 className="text-center text-xl mt-4 italic"
                 style={{ color: "var(--noir-cream)" }}
@@ -414,27 +610,13 @@ export default function CasePage() {
               </p>
             )}
 
-            {foundClues.length >= caseData.min_clues_to_deduce && (
-              <div
-                className="mt-8 p-6 border-2"
-                style={{ borderColor: "var(--noir-sepia)", backgroundColor: "var(--noir-medium)" }}
-                role="status"
-                aria-live="polite"
-              >
-                <p className="text-[22px] mb-5" style={{ color: "var(--noir-cream)" }}>
-                  Ready to file your report, Detective.
-                </p>
-                <button
-                  onClick={() => setStep("deduction")}
-                  className="w-full py-5 text-xl font-bold transition-all hover:opacity-90 focus-visible:outline-2"
-                  style={{
-                    backgroundColor: "var(--noir-sepia)",
-                    color: "var(--noir-dark)",
-                    minHeight: "60px",
-                  }}
-                >
-                  File Your Report
-                </button>
+            {!caseData.is_phone_sim && (
+              <div className="mt-8">
+                <DeductionBuilder
+                  options={caseData.deduction_options}
+                  isUnlocked={isDeductionUnlocked}
+                  onDeductionFiled={handleDeductionCorrect}
+                />
               </div>
             )}
           </section>
@@ -445,7 +627,7 @@ export default function CasePage() {
           <section aria-label="File your deduction report">
             <DeductionBuilder
               options={caseData.deduction_options}
-              isUnlocked
+              isUnlocked={isDeductionUnlocked}
               onDeductionFiled={handleDeductionCorrect}
             />
             <button

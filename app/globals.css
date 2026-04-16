@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700&family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700&family=Press+Start+2P&family=Special+Elite&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -107,13 +107,13 @@ h6 {
 .scanlines {
   background-image: repeating-linear-gradient(
     180deg,
-    rgba(245, 240, 232, 0.06) 0,
-    rgba(245, 240, 232, 0.06) 1px,
+    rgba(245, 240, 232, 0.03) 0,
+    rgba(245, 240, 232, 0.03) 1px,
     transparent 1px,
     transparent 5px
   );
   mix-blend-mode: soft-light;
-  opacity: 0.36;
+  opacity: 1;
 }
 
 /* Stamp animation */
@@ -223,9 +223,67 @@ h6 {
   border-radius: 4px;
 }
 
+/* Desk homepage — ring-shake for rotary phone */
+@keyframes ring-shake {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg); }
+  20%, 40%, 60%, 80% { transform: rotate(5deg); }
+}
+.animate-ring {
+  animation: ring-shake 0.4s ease-in-out infinite;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .font-retro {
+    font-family: 'Press Start 2P', cursive;
+  }
+  /* Dark wall background */
+  .bg-wall {
+    background-color: #2a2e25;
+    background-image: radial-gradient(circle at 50% 0%, #3a3e35 0%, #1a1e15 100%);
+  }
+  /* Rich wood-grain desk texture */
+  .bg-wood-desk {
+    background-color: #8B5A2B;
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 15px,
+        rgba(60, 20, 0, 0.15) 16px,
+        rgba(60, 20, 0, 0.15) 18px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 45px,
+        rgba(40, 10, 0, 0.2) 46px,
+        rgba(40, 10, 0, 0.2) 49px
+      ),
+      linear-gradient(
+        to right,
+        rgba(139, 105, 20, 0.1),
+        rgba(107, 66, 38, 0.3) 20%,
+        rgba(139, 105, 20, 0.1) 40%,
+        rgba(92, 51, 23, 0.4) 60%,
+        rgba(139, 105, 20, 0.1) 80%,
+        rgba(107, 66, 38, 0.3) 100%
+      );
+  }
+  .vignette-warm {
+    box-shadow: inset 0 0 150px rgba(40, 20, 0, 0.8), inset 0 0 50px rgba(20, 10, 0, 0.6);
+  }
+  .shadow-retro {
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.7);
+  }
+  .shadow-retro-hover {
+    box-shadow: 12px 12px 0px rgba(212, 175, 55, 0.6);
+  }
+  .shadow-retro-dialog {
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.8);
   }
   .font-typewriter {
     font-family: var(--font-typewriter);
