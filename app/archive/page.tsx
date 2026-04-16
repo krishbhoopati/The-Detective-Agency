@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getArchive, clearArchive, ArchiveEntry } from "@/lib/archive";
+import { getArchive, ArchiveEntry } from "@/lib/archive";
 import AudioController from "@/components/AudioController";
 
 export default function ArchivePage() {
@@ -14,89 +14,93 @@ export default function ArchivePage() {
     setMounted(true);
   }, []);
 
-  const handleClear = () => {
-    if (confirm("Clear all closed case files? This cannot be undone.")) {
-      clearArchive();
-      setEntries([]);
-    }
-  };
-
   return (
     <main
-      className="min-h-screen px-5 sm:px-6 py-10"
-      style={{ backgroundColor: "var(--noir-dark)" }}
+      className="page-fade-in min-h-screen px-5 py-10"
+      style={{
+        backgroundColor: "var(--noir-dark)",
+        backgroundImage:
+          "radial-gradient(ellipse at top, rgba(200,169,110,0.1), transparent 46%), linear-gradient(135deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 18px)",
+      }}
     >
       <AudioController />
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <Link
           href="/cases"
-          className="inline-flex items-center gap-2 text-base mb-8 hover:underline focus-visible:outline-2 rounded"
-          style={{ color: "var(--noir-sepia)" }}
+          className="inline-flex min-h-[60px] items-center justify-center px-5 py-3 mb-8 text-xl font-bold transition-all hover:opacity-90 focus-visible:outline-2"
+          style={{
+            backgroundColor: "var(--noir-sepia)",
+            color: "var(--noir-dark)",
+          }}
         >
-          ← Back to Cases
+          Back to Open Cases
         </Link>
 
-        <div className="mb-10 text-center">
+        <div className="mb-10">
           <h1
-            className="text-4xl sm:text-5xl font-bold mb-3"
-            style={{ color: "var(--noir-cream)" }}
+            className="text-4xl sm:text-5xl font-bold mb-4 uppercase"
+            style={{ color: "var(--noir-sepia)" }}
           >
-            Case Archive
+            AGENCY FILES
           </h1>
-          <p className="text-lg" style={{ color: "var(--text-on-dark-muted)" }}>
-            Your closed case files, Detective.
+          <p className="text-[22px]" style={{ color: "var(--noir-cream)" }}>
+            Cases closed. Criminals identified.
           </p>
         </div>
 
-        {mounted && entries.length === 0 ? (
+        {!mounted ? (
+          <p className="text-[22px]" style={{ color: "var(--noir-cream)" }}>
+            One moment, Detective...
+          </p>
+        ) : entries.length === 0 ? (
           <div
-            className="text-center rounded-lg p-12 border-2"
-            style={{ borderColor: "#444", color: "var(--text-on-dark-muted)" }}
+            className="p-8 border-2"
+            style={{
+              borderColor: "var(--noir-sepia)",
+              backgroundColor: "var(--noir-paper)",
+              color: "var(--noir-dark)",
+            }}
           >
-            <p className="text-3xl mb-4" aria-hidden="true">🗂️</p>
-            <p className="text-xl mb-3 font-semibold" style={{ color: "var(--text-on-dark-secondary)" }}>
-              No closed cases yet.
+            <p className="text-[22px] leading-relaxed mb-6">
+              No cases on file yet, Detective. Your work begins on the street.
             </p>
-            <p className="text-base mb-6">Your first assignment awaits, Detective.</p>
             <Link
               href="/cases"
-              className="inline-block px-8 py-4 rounded-lg font-bold text-lg transition-all hover:opacity-90 focus-visible:outline-2"
+              className="focus-on-paper inline-flex min-h-[60px] items-center px-3 text-xl font-bold hover:underline focus-visible:outline-2"
               style={{
-                backgroundColor: "var(--noir-sepia)",
                 color: "var(--noir-dark)",
-                minHeight: "60px",
               }}
             >
-              View Open Cases →
+              Open a case
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {entries.map((entry) => (
-              <div
+              <article
                 key={entry.case_id}
-                className="rounded-lg p-6 border-2"
+                className="p-6 border-2"
                 style={{
-                  backgroundColor: "var(--noir-medium)",
-                  borderColor: "#444",
-                  color: "var(--noir-cream)",
+                  backgroundColor: "var(--noir-paper)",
+                  borderColor: "var(--noir-sepia)",
+                  color: "var(--noir-dark)",
                 }}
               >
-                <div className="flex items-start justify-between gap-4 mb-3">
+                <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
                   <div>
                     <h2
-                      className="text-xl font-bold"
-                      style={{ color: "var(--noir-cream)" }}
+                      className="text-2xl font-bold leading-tight"
+                      style={{ color: "var(--noir-dark)" }}
                     >
                       {entry.case_title}
                     </h2>
-                    <p className="text-sm mt-2" style={{ color: "var(--text-on-dark-muted)" }}>
-                      {entry.scam_type} · {entry.clues_found} clues found
+                    <p className="text-xl mt-2" style={{ color: "var(--text-on-paper-secondary)" }}>
+                      {entry.scam_type}
                     </p>
                   </div>
                   <span
-                    className="text-sm font-bold border-2 px-3 py-1.5 rotate-[-5deg] shrink-0"
+                    className="text-xl font-bold border-2 px-3 py-2 rotate-[-5deg] shrink-0"
                     style={{ borderColor: "var(--noir-red)", color: "var(--noir-red)" }}
                     aria-label="Case status: closed"
                   >
@@ -106,39 +110,27 @@ export default function ArchivePage() {
 
                 {entry.commendation && (
                   <p
-                    className="text-sm leading-relaxed mb-4 border-l-2 pl-4"
-                    style={{ borderLeftColor: "var(--noir-sepia)", color: "var(--text-on-dark-secondary)" }}
+                    className="text-xl italic leading-relaxed my-5 border-l-2 pl-4"
+                    style={{ borderLeftColor: "var(--noir-sepia)", color: "var(--text-on-paper)" }}
                     aria-label="Commendation excerpt"
                   >
-                    &ldquo;{entry.commendation.length > 180
-                      ? entry.commendation.slice(0, 180) + "…"
+                    &ldquo;{entry.commendation.length > 120
+                      ? entry.commendation.slice(0, 120) + "..."
                       : entry.commendation}&rdquo;
                   </p>
                 )}
 
-                <p className="text-sm" style={{ color: "var(--text-on-dark-soft)" }}>
-                  Solved:{" "}
+                <p className="text-xl" style={{ color: "var(--text-on-paper-secondary)" }}>
+                  Closed{" "}
                   {new Date(entry.completed_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
-                  })}
+                  })}{" "}
+                  with {entry.clues_found} clues logged
                 </p>
-              </div>
+              </article>
             ))}
-
-            {entries.length > 0 && (
-              <div className="text-center pt-4">
-                <button
-                  onClick={handleClear}
-                  className="text-sm hover:underline focus-visible:outline-2 rounded px-2"
-                  style={{ color: "var(--text-on-dark-soft)" }}
-                  aria-label="Clear all closed case files"
-                >
-                  Clear All Files
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

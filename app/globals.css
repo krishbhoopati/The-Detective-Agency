@@ -1,17 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700&family=Press+Start+2P&family=Special+Elite&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  --font-typewriter: 'Special Elite', serif;
+  --font-ui: 'Inter', sans-serif;
   --font-readable: 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif;
   --noir-sepia: #C8A96E;
   --noir-dark: #1A1A1A;
   --noir-cream: #F5F0E8;
   --noir-red: #8B0000;
   --noir-paper: #E8DFC8;
-  --noir-shadow: #0D0D0D;
+  --noir-shadow: rgba(0, 0, 0, 0.6);
   --noir-medium: #2A2A2A;
   --text-on-dark: #FFF8ED;
   --text-on-dark-secondary: #F0E6D4;
@@ -63,9 +65,13 @@ h6 {
 
 /* WCAG 2.1 AA focus ring */
 :focus-visible {
-  outline: 3px solid var(--noir-sepia);
+  outline: 2px solid var(--noir-sepia);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+.focus-on-paper:focus-visible {
+  outline-color: var(--noir-dark);
 }
 
 /* Minimum touch target utility */
@@ -83,6 +89,33 @@ h6 {
   to { width: 100%; }
 }
 
+/* Page mount fade */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-fade-in {
+  animation: page-fade-in 300ms ease-out both;
+}
+
+/* Low-opacity landing scanlines */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(245, 240, 232, 0.03) 0,
+    rgba(245, 240, 232, 0.03) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  mix-blend-mode: soft-light;
+  opacity: 1;
+}
+
 /* Stamp animation */
 @keyframes stamp-in {
   0% { transform: scale(2) rotate(-10deg); opacity: 0; }
@@ -92,6 +125,26 @@ h6 {
 
 .stamp-animation {
   animation: stamp-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes case-closed-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.7) rotate(-15deg);
+  }
+  68% {
+    opacity: 1;
+    transform: scale(0.96) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.case-closed-stamp {
+  animation: case-closed-stamp 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: center;
 }
 
 /* Clue found glow */
@@ -106,9 +159,62 @@ h6 {
 }
 
 /* Folder hover */
-@keyframes folder-lift {
-  from { transform: translateY(0) rotate(0deg); }
-  to { transform: translateY(-4px) rotate(1deg); }
+.case-folder-body {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.case-folder-button:hover .case-folder-body,
+.case-folder-button:focus-visible .case-folder-body {
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.46);
+}
+
+/* iOS simulator utilities */
+.ios-squircle { border-radius: 22.37%; }
+.ios-inset-separator { border-bottom: 1px solid rgba(60,60,67,0.15); }
+.ios-text-shadow { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.ios-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+/* Evidence HTML comes from structured local case files. Enforce the senior-readable floor. */
+.evidence-document {
+  overflow-wrap: anywhere;
+}
+
+.evidence-document a {
+  pointer-events: none;
+}
+
+.evidence-document [style*="font-size: 11px"],
+.evidence-document [style*="font-size: 12px"],
+.evidence-document [style*="font-size: 13px"],
+.evidence-document [style*="font-size: 14px"],
+.evidence-document [style*="font-size: 15px"],
+.evidence-document [style*="font-size: 16px"],
+.evidence-document [style*="font-size: 17px"],
+.evidence-document [style*="font-size: 18px"],
+.evidence-document [style*="font-size: 19px"] {
+  font-size: 20px !important;
+}
+
+.evidence-document [style*="color: #999"],
+.evidence-document [style*="color: #888"],
+.evidence-document [style*="color: #777"],
+.evidence-document [style*="color: #666"] {
+  color: #333 !important;
+}
+
+.evidence-document [style*="color: #ccc"] {
+  color: var(--noir-cream) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
 }
 
 /* Scrollbar styling */
@@ -123,12 +229,73 @@ h6 {
   border-radius: 4px;
 }
 
+/* Desk homepage — ring-shake for rotary phone */
+@keyframes ring-shake {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg); }
+  20%, 40%, 60%, 80% { transform: rotate(5deg); }
+}
+.animate-ring {
+  animation: ring-shake 0.4s ease-in-out infinite;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+  .font-retro {
+    font-family: 'Press Start 2P', cursive;
+  }
+  /* Dark wall background */
+  .bg-wall {
+    background-color: #2a2e25;
+    background-image: radial-gradient(circle at 50% 0%, #3a3e35 0%, #1a1e15 100%);
+  }
+  /* Rich wood-grain desk texture */
+  .bg-wood-desk {
+    background-color: #8B5A2B;
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 15px,
+        rgba(60, 20, 0, 0.15) 16px,
+        rgba(60, 20, 0, 0.15) 18px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 45px,
+        rgba(40, 10, 0, 0.2) 46px,
+        rgba(40, 10, 0, 0.2) 49px
+      ),
+      linear-gradient(
+        to right,
+        rgba(139, 105, 20, 0.1),
+        rgba(107, 66, 38, 0.3) 20%,
+        rgba(139, 105, 20, 0.1) 40%,
+        rgba(92, 51, 23, 0.4) 60%,
+        rgba(139, 105, 20, 0.1) 80%,
+        rgba(107, 66, 38, 0.3) 100%
+      );
+  }
+  .vignette-warm {
+    box-shadow: inset 0 0 150px rgba(40, 20, 0, 0.8), inset 0 0 50px rgba(20, 10, 0, 0.6);
+  }
+  .shadow-retro {
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.7);
+  }
+  .shadow-retro-hover {
+    box-shadow: 12px 12px 0px rgba(212, 175, 55, 0.6);
+  }
+  .shadow-retro-dialog {
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.8);
+  }
   .font-typewriter {
-    font-family: var(--font-readable);
+    font-family: var(--font-typewriter);
+  }
+  .font-ui {
+    font-family: var(--font-ui);
   }
   .text-sepia {
     color: var(--noir-sepia);

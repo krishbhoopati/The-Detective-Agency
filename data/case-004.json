@@ -1,0 +1,49 @@
+{
+  "id": "case-004",
+  "title": "The Hidden Message",
+  "scam_type": "App Navigation",
+  "difficulty": "Practice",
+  "briefing": "Detective, a suspicious message arrived on a victim's phone — then vanished. It was automatically archived. You will need to navigate their phone to find it. Tap the icons and menus just like you would on a real phone.",
+  "evidence": {
+    "type": "phone_sim",
+    "html": ""
+  },
+  "hotspots": [],
+  "min_clues_to_deduce": 1,
+  "deduction_options": [
+    {
+      "id": "correct",
+      "text": "Found it — the archived message was from an unknown number asking for gift cards",
+      "is_correct": true
+    }
+  ],
+  "learning_summary": "Messages don't disappear — they get archived. Check your archived or spam folder if an important or suspicious message seems to have vanished.",
+  "has_interrogation": false,
+  "is_phone_sim": true,
+  "phone_sim_steps": [
+    {
+      "step": 1,
+      "screen": "home",
+      "instruction": "Tap the Messages app to open it.",
+      "target_id": "messages-icon"
+    },
+    {
+      "step": 2,
+      "screen": "messages_inbox",
+      "instruction": "The message is not here. Tap the menu icon (☰) in the top corner to see more options.",
+      "target_id": "menu-icon"
+    },
+    {
+      "step": 3,
+      "screen": "messages_menu",
+      "instruction": "Tap 'Archived Messages' to look inside.",
+      "target_id": "archived-option"
+    },
+    {
+      "step": 4,
+      "screen": "archived",
+      "instruction": "There it is. Tap the suspicious message to open it.",
+      "target_id": "suspicious-message"
+    }
+  ]
+}

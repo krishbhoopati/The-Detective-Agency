@@ -1,87 +1,81 @@
 "use client";
 
-import { CaseSummary } from "@/lib/case-loader";
+import { Check, FileText } from "lucide-react";
 
 interface CaseFolderProps {
-  caseData: CaseSummary;
+  case_id: string;
+  title: string;
+  scam_type: string;
+  isCompleted: boolean;
+  isTutorial?: boolean;
   onClick: () => void;
-  solved?: boolean;
 }
 
-const DIFFICULTY_COLORS: Record<string, string> = {
-  Beginner: "#2d6a4f",
-  Intermediate: "#b5838d",
-  Advanced: "#8B0000",
-};
-
-const SCAM_ICONS: Record<string, string> = {
-  "Grandparent Scam": "📱",
-  "Phishing Email": "📧",
-  "Tech Support Scam": "💻",
-};
-
-export default function CaseFolder({ caseData, onClick, solved }: CaseFolderProps) {
-  const diffColor = DIFFICULTY_COLORS[caseData.difficulty] ?? "#C8A96E";
-  const icon = SCAM_ICONS[caseData.scam_type] ?? "🔍";
-
+export default function CaseFolder({
+  case_id,
+  title,
+  scam_type,
+  isCompleted,
+  isTutorial,
+  onClick,
+}: CaseFolderProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      aria-label={`Open case: ${caseData.title}`}
-      className="group relative w-full text-left transition-all duration-200 hover:-translate-y-1 hover:rotate-1 focus-visible:outline-2 rounded-lg"
-      style={{ minHeight: "60px" }}
+      aria-label={`Open case ${case_id}: ${title}`}
+      className="case-folder-button group relative w-full min-h-[80px] text-left transition-transform duration-200 hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-2"
     >
-      {/* Folder tab */}
       <div
-        className="absolute -top-3 left-6 px-4 py-2 rounded-t-md text-sm font-bold tracking-[0.08em] z-10"
-        style={{ backgroundColor: "var(--noir-paper)", color: "var(--noir-dark)" }}
-      >
-        CASE FILE
-      </div>
-
-      {/* Folder body */}
-      <div
-        className="relative rounded-lg p-6 pt-8 border-2 transition-all duration-200"
+        className="absolute left-5 top-0 h-8 w-32 rounded-t-[8px] border-x-2 border-t-2"
         style={{
-          backgroundColor: "var(--noir-paper)",
-          borderColor: "var(--noir-sepia)",
+          backgroundColor: "#d4a858",
+          borderColor: "#9b7236",
+        }}
+        aria-hidden="true"
+      />
+
+      <div
+        className="case-folder-body relative mt-6 min-h-[164px] border-2 p-5 pt-7"
+        style={{
+          background:
+            "linear-gradient(180deg, #e3bd6e 0%, #c99845 100%)",
+          borderColor: "#9b7236",
           color: "var(--noir-dark)",
         }}
       >
-        {solved && (
-          <div
-            className="absolute top-3 right-4 text-sm font-bold tracking-[0.08em] rotate-[-12deg] border-2 px-3 py-1.5 opacity-80"
-            style={{ color: "var(--noir-red)", borderColor: "var(--noir-red)" }}
+        {isTutorial && (
+          <span
+            className="absolute left-4 top-4 border-2 px-3 py-1 font-typewriter text-[16px] font-bold uppercase"
+            style={{
+              backgroundColor: "var(--noir-red)",
+              borderColor: "var(--noir-red)",
+              color: "var(--noir-cream)",
+            }}
           >
-            CLOSED
-          </div>
+            Start Here
+          </span>
         )}
 
-        <div className="flex items-start gap-3 mb-3">
-          <span className="text-3xl" aria-hidden="true">{icon}</span>
-          <div>
-            <h3
-              className="text-xl font-bold leading-tight"
-              style={{ color: "var(--noir-dark)" }}
-            >
-              {caseData.title}
-            </h3>
-            <p className="text-sm mt-2" style={{ color: "var(--text-on-paper-secondary)" }}>
-              {caseData.scam_type}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 mt-4">
+        {isCompleted && (
           <span
-            className="text-sm font-bold px-3 py-1.5 rounded text-white"
-            style={{ backgroundColor: diffColor }}
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full"
+            style={{ backgroundColor: "#2f6f46", color: "var(--noir-cream)" }}
+            aria-label="Case completed"
           >
-            {caseData.difficulty}
+            <Check aria-hidden="true" size={26} strokeWidth={3} />
           </span>
-          <span className="text-sm font-medium" style={{ color: "var(--text-on-paper-muted)" }}>
-            Open this case file
-          </span>
+        )}
+
+        <div
+          className={isCompleted ? "opacity-65" : undefined}
+          style={{ paddingTop: isTutorial || isCompleted ? "34px" : 0 }}
+        >
+          <FileText className="mb-3" size={32} aria-hidden="true" />
+          <h3 className="text-[24px] font-bold leading-tight">{title}</h3>
+          <p className="mt-2 text-[20px] leading-snug" style={{ color: "#3d2b16" }}>
+            {scam_type}
+          </p>
         </div>
       </div>
     </button>

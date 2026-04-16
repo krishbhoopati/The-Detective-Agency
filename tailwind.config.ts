@@ -23,8 +23,15 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        "noir-dark": "#1A1A1A",
+        "noir-sepia": "#C8A96E",
+        "noir-cream": "#F5F0E8",
+        "noir-paper": "#E8DFC8",
+        "noir-red": "#8B0000",
       },
       fontFamily: {
+        typewriter: ["Special Elite", "serif"],
+        ui: ["Inter", "sans-serif"],
         readable: ["Atkinson Hyperlegible", "Segoe UI", "Arial", "sans-serif"],
       },
     },

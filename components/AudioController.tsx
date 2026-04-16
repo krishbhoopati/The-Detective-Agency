@@ -1,20 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function AudioController() {
   const [muted, setMuted] = useState(true);
   const [started, setStarted] = useState(false);
   const rainRef = useRef<HTMLAudioElement | null>(null);
   const jazzRef = useRef<HTMLAudioElement | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    rainRef.current = new Audio("/audio/rain.mp3");
-    jazzRef.current = new Audio("/audio/jazz.mp3");
-    rainRef.current.loop = true;
-    jazzRef.current.loop = true;
-    rainRef.current.volume = 0.4;
-    jazzRef.current.volume = 0.25;
+    const createLoop = (src: string, volume: number) => {
+      try {
+        const audio = new Audio(src);
+        audio.loop = true;
+        audio.volume = volume;
+        audio.muted = true;
+        return audio;
+      } catch {
+        return null;
+      }
+    };
+
+    rainRef.current = createLoop("/audio/rain.mp3", 0.35);
+    jazzRef.current = createLoop("/audio/jazz.mp3", 0.22);
 
     return () => {
       rainRef.current?.pause();
@@ -22,39 +31,54 @@ export default function AudioController() {
     };
   }, []);
 
-  const startAudio = () => {
-    if (!started) {
-      setStarted(true);
-      setMuted(false);
-      rainRef.current?.play().catch(() => {});
-      jazzRef.current?.play().catch(() => {});
-    }
-  };
+  const setAllMuted = useCallback((nextMuted: boolean) => {
+    if (rainRef.current) rainRef.current.muted = nextMuted;
+    if (jazzRef.current) jazzRef.current.muted = nextMuted;
+    setMuted(nextMuted);
+  }, []);
+
+  const startAudio = useCallback(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    setStarted(true);
+    setAllMuted(false);
+    rainRef.current?.play().catch(() => {});
+    jazzRef.current?.play().catch(() => {});
+  }, [setAllMuted]);
+
+  useEffect(() => {
+    const handleFirstInteraction = () => startAudio();
+    window.addEventListener("pointerdown", handleFirstInteraction, { once: true });
+    window.addEventListener("keydown", handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+    };
+  }, [startAudio]);
 
   const toggleMute = () => {
     if (!started) {
       startAudio();
       return;
     }
-    const newMuted = !muted;
-    setMuted(newMuted);
-    if (rainRef.current) rainRef.current.muted = newMuted;
-    if (jazzRef.current) jazzRef.current.muted = newMuted;
+    setAllMuted(!muted);
   };
 
   return (
     <button
+      type="button"
       onClick={toggleMute}
       aria-label={muted ? "Unmute background audio" : "Mute background audio"}
-      title={muted ? "Enable ambient sounds" : "Mute ambient sounds"}
-      className="fixed top-4 right-4 z-50 touch-target w-14 h-14 rounded-full border-2 flex items-center justify-center text-2xl transition-all hover:scale-110 focus-visible:outline-2"
+      title={muted ? "Unmute background audio" : "Mute background audio"}
+      className="fixed right-4 top-4 z-50 flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 text-[22px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
       style={{
         borderColor: "var(--noir-sepia)",
         backgroundColor: "var(--noir-dark)",
-        color: muted ? "var(--text-on-dark-soft)" : "var(--noir-sepia)",
+        color: "var(--noir-sepia)",
       }}
     >
-      {muted ? "🔇" : "🎵"}
+      {muted ? "🔇" : "🔊"}
     </button>
   );
 }

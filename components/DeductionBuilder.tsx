@@ -1,44 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { DeductionOption } from "@/lib/case-loader";
+import { useEffect, useState } from "react";
+import type { DeductionOption } from "@/lib/case-loader";
 
 interface DeductionBuilderProps {
   options: DeductionOption[];
-  onSubmit: (correct: boolean) => void;
-  disabled?: boolean;
+  isUnlocked: boolean;
+  onDeductionFiled: (id: string) => void;
 }
 
-export default function DeductionBuilder({ options, onSubmit, disabled }: DeductionBuilderProps) {
-  const [selected, setSelected] = useState<string | null>(null);
+export default function DeductionBuilder({
+  options,
+  isUnlocked,
+  onDeductionFiled,
+}: DeductionBuilderProps) {
+  const [selected, setSelected] = useState<string>("");
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => setFeedback(null), 2000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
   const handleSubmit = () => {
-    if (!selected) return;
-    const option = options.find((o) => o.id === selected);
+    const option = options.find((candidate) => candidate.id === selected);
     if (!option) return;
 
     if (option.is_correct) {
-      setSubmitted(true);
-      onSubmit(true);
-    } else {
-      setFeedback(
-        "The evidence points elsewhere, Detective. Look again."
-      );
-      setSelected(null);
+      onDeductionFiled(option.id);
+      return;
     }
+
+    setSelected("");
+    setFeedback("The evidence points elsewhere, Detective. Keep looking.");
   };
 
-  if (disabled) {
+  if (!isUnlocked) {
     return (
       <div
-        className="rounded-lg p-6 border-2 text-center"
-        style={{ borderColor: "#444", backgroundColor: "var(--noir-medium)", opacity: 0.6 }}
-        aria-label="Deduction locked — find more clues first"
+        className="border-2 p-6 text-center font-typewriter"
+        style={{
+          borderColor: "rgba(200, 169, 110, 0.5)",
+          backgroundColor: "rgba(42, 42, 42, 0.74)",
+        }}
+        aria-label="Deduction locked"
       >
-        <p className="text-lg font-semibold" style={{ color: "var(--text-on-dark-muted)" }}>
-          🔒 Find more clues before filing your report
+        <p style={{ color: "var(--noir-sepia)", fontSize: "20px" }}>
+          Find more clues before filing your report, Detective.
         </p>
       </div>
     );
@@ -46,32 +55,36 @@ export default function DeductionBuilder({ options, onSubmit, disabled }: Deduct
 
   return (
     <div
-      className="rounded-lg p-6 border-2"
-      style={{ borderColor: "var(--noir-sepia)", backgroundColor: "var(--noir-medium)" }}
+      className="border-2 p-6"
+      style={{
+        borderColor: "var(--noir-sepia)",
+        backgroundColor: "var(--noir-medium)",
+      }}
       role="group"
       aria-labelledby="deduction-heading"
     >
       <h3
         id="deduction-heading"
-        className="text-xl font-bold mb-3"
+        className="mb-4 font-typewriter text-[28px] font-bold uppercase"
         style={{ color: "var(--noir-sepia)" }}
       >
         File Your Report
       </h3>
-      <p className="text-base mb-6" style={{ color: "var(--text-on-dark-muted)" }}>
-        Based on the evidence, what kind of scam is this?
-      </p>
 
-      <fieldset className="space-y-3" disabled={submitted}>
+      <fieldset className="space-y-3">
         <legend className="sr-only">Choose your deduction</legend>
         {options.map((option) => (
           <label
             key={option.id}
-            className="flex items-start gap-4 p-5 rounded-lg cursor-pointer transition-all hover:opacity-90"
+            className="flex cursor-pointer items-start gap-4 border-2 p-4 transition-transform duration-200 hover:-translate-y-0.5"
             style={{
-              backgroundColor: selected === option.id ? "rgba(200, 169, 110, 0.15)" : "rgba(255,255,255,0.05)",
-              border: `2px solid ${selected === option.id ? "var(--noir-sepia)" : "#444"}`,
               minHeight: "60px",
+              backgroundColor:
+                selected === option.id
+                  ? "rgba(200, 169, 110, 0.16)"
+                  : "rgba(255, 255, 255, 0.05)",
+              borderColor:
+                selected === option.id ? "var(--noir-sepia)" : "rgba(200, 169, 110, 0.28)",
             }}
           >
             <input
@@ -83,10 +96,13 @@ export default function DeductionBuilder({ options, onSubmit, disabled }: Deduct
                 setSelected(option.id);
                 setFeedback(null);
               }}
-              className="mt-1 w-6 h-6 cursor-pointer accent-yellow-600 shrink-0"
+              className="mt-2 h-6 w-6 shrink-0 accent-yellow-700"
               aria-label={option.text}
             />
-            <span className="text-base leading-relaxed" style={{ color: "var(--noir-cream)" }}>
+            <span
+              className="leading-relaxed"
+              style={{ color: "var(--noir-cream)", fontSize: "20px" }}
+            >
               {option.text}
             </span>
           </label>
@@ -95,27 +111,29 @@ export default function DeductionBuilder({ options, onSubmit, disabled }: Deduct
 
       {feedback && (
         <p
-          className="mt-5 text-base font-semibold"
-          style={{ color: "#e07070" }}
-          role="alert"
-          aria-live="assertive"
+          className="mt-4 font-typewriter"
+          style={{ color: "var(--noir-sepia)", fontSize: "20px" }}
+          role="status"
+          aria-live="polite"
         >
           {feedback}
         </p>
       )}
 
       <button
+        type="button"
         onClick={handleSubmit}
-        disabled={!selected || submitted}
-        className="mt-6 w-full font-bold text-lg rounded-lg transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2"
+        disabled={!selected}
+        className="mt-6 w-full font-typewriter font-bold uppercase transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45"
         style={{
-          backgroundColor: "var(--noir-sepia)",
-          color: "var(--noir-dark)",
-          minHeight: "60px",
+          minHeight: "64px",
+          backgroundColor: "var(--noir-dark)",
+          color: "var(--noir-sepia)",
+          border: "2px solid var(--noir-sepia)",
+          fontSize: "22px",
         }}
-        aria-disabled={!selected || submitted}
       >
-        {submitted ? "✓ Report Filed" : "File Your Report"}
+        File Your Report
       </button>
     </div>
   );

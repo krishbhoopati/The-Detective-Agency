@@ -1,66 +1,82 @@
 "use client";
 
-import { useState } from "react";
-import { Hotspot } from "@/lib/case-loader";
+import type { MouseEvent } from "react";
+import { motion } from "framer-motion";
+import type { Hotspot } from "@/lib/case-loader";
 
 interface EvidenceViewerProps {
-  evidence: { type: "sms" | "email" | "popup"; html: string };
+  evidenceHtml: string;
   hotspots: Hotspot[];
   foundClues: string[];
-  onClueFound: (hotspot: Hotspot) => void;
+  onClueFound: (id: string) => void;
+  onWrongClick: () => void;
 }
 
-const EVIDENCE_LABELS: Record<string, string> = {
-  sms: "SMS Message",
-  email: "Email",
-  popup: "Browser Pop-up",
-};
+function scrubLinks(html: string) {
+  return html
+    .replace(/<a\b([^>]*)href=(["']).*?\2([^>]*)>/gi, "<span$1$3>")
+    .replace(/<\/a>/gi, "</span>");
+}
 
 export default function EvidenceViewer({
-  evidence,
+  evidenceHtml,
   hotspots,
   foundClues,
   onClueFound,
+  onWrongClick,
 }: EvidenceViewerProps) {
-  const [nudge, setNudge] = useState<string | null>(null);
+  const handleHotspotClick = (
+    event: MouseEvent<HTMLButtonElement>,
+    hotspot: Hotspot
+  ) => {
+    event.stopPropagation();
 
-  const handleHotspotClick = (hotspot: Hotspot) => {
     if (foundClues.includes(hotspot.id)) {
-      setNudge("You already marked that clue, Detective.");
-      setTimeout(() => setNudge(null), 2000);
+      onWrongClick();
       return;
     }
-    onClueFound(hotspot);
+
+    try {
+      new Audio("/audio/typewriter.mp3").play().catch(() => {});
+    } catch {
+      // Audio is decorative. A blocked or missing file should not interrupt play.
+    }
+
+    onClueFound(hotspot.id);
   };
 
   return (
     <div className="w-full">
       <div
-        className="text-sm font-bold tracking-[0.06em] mb-4 px-1"
-        style={{ color: "var(--noir-sepia)" }}
-        aria-label={`Evidence type: ${EVIDENCE_LABELS[evidence.type]}`}
+        className="relative mx-auto max-w-[580px] overflow-hidden border-2 shadow-2xl"
+        style={{
+          backgroundColor: "var(--noir-cream)",
+          borderColor: "var(--noir-sepia)",
+          boxShadow: "0 24px 70px rgba(0, 0, 0, 0.46)",
+        }}
+        onClick={onWrongClick}
       >
-        Exhibit A - {EVIDENCE_LABELS[evidence.type]}
-      </div>
-
-      <div className="relative rounded-lg overflow-hidden border-2" style={{ borderColor: "var(--noir-sepia)" }}>
-        {/* Evidence content */}
         <div
-          className="relative"
-          dangerouslySetInnerHTML={{ __html: evidence.html }}
+          className="evidence-document relative p-3"
+          dangerouslySetInnerHTML={{ __html: scrubLinks(evidenceHtml) }}
           aria-label="Evidence document"
         />
 
-        {/* Hotspot overlays */}
         {hotspots.map((hotspot) => {
           const isFound = foundClues.includes(hotspot.id);
+
           return (
             <button
               key={hotspot.id}
-              onClick={() => handleHotspotClick(hotspot)}
-              aria-label={isFound ? `Clue already found: ${hotspot.label}` : `Tap to investigate this area`}
+              type="button"
+              onClick={(event) => handleHotspotClick(event, hotspot)}
+              aria-label={
+                isFound
+                  ? `Clue found: ${hotspot.label}`
+                  : "Inspect this part of the evidence"
+              }
               aria-pressed={isFound}
-              className="absolute transition-all duration-200 group"
+              className="absolute cursor-crosshair transition-colors duration-200 focus-visible:outline-2"
               style={{
                 top: hotspot.position.top,
                 left: hotspot.position.left,
@@ -68,66 +84,36 @@ export default function EvidenceViewer({
                 height: hotspot.position.height,
                 minWidth: "60px",
                 minHeight: "60px",
-                backgroundColor: isFound
-                  ? "rgba(139, 0, 0, 0.15)"
-                  : "rgba(200, 169, 110, 0.0)",
-                border: isFound
-                  ? "2px solid rgba(139, 0, 0, 0.6)"
-                  : "2px solid transparent",
-                cursor: isFound ? "default" : "crosshair",
                 zIndex: 10,
-              }}
-              onMouseEnter={(e) => {
-                if (!isFound) {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(200, 169, 110, 0.2)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(200, 169, 110, 0.6)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isFound) {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(200, 169, 110, 0.0)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
-                }
+                backgroundColor: isFound
+                  ? "rgba(139, 0, 0, 0.08)"
+                  : "rgba(200, 169, 110, 0)",
+                border: isFound
+                  ? "2px solid rgba(139, 0, 0, 0.55)"
+                  : "2px solid transparent",
               }}
             >
               {isFound && (
-                <span
-                  className="absolute inset-0 flex items-center justify-center text-sm font-bold opacity-80 select-none pointer-events-none"
+                <motion.span
+                  initial={{ scale: 1.3, opacity: 0, rotate: -10 }}
+                  animate={{ scale: 1, opacity: 1, rotate: -7 }}
+                  transition={{ type: "spring", stiffness: 360, damping: 18 }}
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center font-typewriter text-[22px] font-bold uppercase tracking-widest"
                   style={{ color: "var(--noir-red)" }}
                   aria-hidden="true"
                 >
-                  ✓ {hotspot.label}
-                </span>
+                  ✓ Noted
+                </motion.span>
               )}
             </button>
           );
         })}
       </div>
 
-      {nudge && (
-        <p
-          className="mt-4 text-center text-sm font-medium"
-          style={{ color: "var(--noir-sepia)" }}
-          role="status"
-          aria-live="polite"
-        >
-          {nudge}
-        </p>
-      )}
-
       <p
-        className="mt-3 text-center text-sm"
-        style={{ color: "var(--text-on-dark-muted)" }}
-        aria-label="Instruction: tap highlighted areas to find clues"
-      >
-        Tap suspicious areas of the evidence to mark clues
-      </p>
-
-      <p
-        className="mt-4 text-center text-lg font-bold"
-        style={{ color: "var(--noir-cream)" }}
+        className="mt-4 text-center font-bold"
+        style={{ fontSize: "22px", color: "var(--noir-cream)" }}
         aria-live="polite"
-        aria-label={`${foundClues.length} of ${hotspots.length} clues found`}
       >
         Clues Found: {foundClues.length} of {hotspots.length}
       </p>

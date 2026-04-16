@@ -1,0 +1,95 @@
+/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Special+Elite&display=swap');
+
+/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
+
+@layer utilities {
+  .font-retro {
+    font-family: 'Press Start 2P', cursive;
+  }
+  .font-typewriter {
+    font-family: 'Special Elite', monospace;
+  }
+  /* Rich 3D Wood Desk Texture */
+  .bg-wood-desk {
+    background-color: #8B5A2B;
+    background-image: 
+      /* Wood grain lines */
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 15px,
+        rgba(60, 20, 0, 0.15) 16px,
+        rgba(60, 20, 0, 0.15) 18px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 45px,
+        rgba(40, 10, 0, 0.2) 46px,
+        rgba(40, 10, 0, 0.2) 49px
+      ),
+      /* Base color variation */
+      linear-gradient(
+        to right,
+        rgba(139, 105, 20, 0.1),
+        rgba(107, 66, 38, 0.3) 20%,
+        rgba(139, 105, 20, 0.1) 40%,
+        rgba(92, 51, 23, 0.4) 60%,
+        rgba(139, 105, 20, 0.1) 80%,
+        rgba(107, 66, 38, 0.3) 100%
+      );
+  }
+  /* Dark Wall Background */
+  .bg-wall {
+    background-color: #2a2e25;
+    background-image: radial-gradient(circle at 50% 0%, #3a3e35 0%, #1a1e15 100%);
+  }
+  .vignette-warm {
+    box-shadow: inset 0 0 150px rgba(40, 20, 0, 0.8), inset 0 0 50px rgba(20, 10, 0, 0.6);
+  }
+  /* CRT Scanlines - Subtler */
+  .scanlines {
+    background: linear-gradient(
+      to bottom,
+      rgba(255,255,255,0),
+      rgba(255,255,255,0) 50%,
+      rgba(0,0,0,0.05) 50%,
+      rgba(0,0,0,0.05)
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+  /* Chunky Retro Shadows */
+  .shadow-retro {
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.7);
+  }
+  .shadow-retro-hover {
+    box-shadow: 12px 12px 0px rgba(212, 175, 55, 0.6);
+  }
+  .shadow-retro-dialog {
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.8);
+  }
+}
+@keyframes ring-shake {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg); }
+  20%, 40%, 60%, 80% { transform: rotate(5deg); }
+}
+.animate-ring {
+  animation: ring-shake 0.4s ease-in-out infinite;
+}
+body, html, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #1a1e15;
+  color: #e8dcc5;
+  overflow: hidden;
+}
