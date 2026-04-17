@@ -442,7 +442,7 @@ export default function CasePage() {
         />
       )}
 
-      <div className="max-w-2xl mx-auto">
+      <div className={`max-w-2xl mx-auto ${step === "commendation" ? "" : "content-scale-down"}`}>
         {/* Back link */}
         <Link
           href="/cases"
@@ -477,7 +477,7 @@ export default function CasePage() {
         {step === "briefing" && (
           <section aria-label="Case briefing">
             <div
-              className="rounded-lg p-6 mb-8 border-l-4 text-[22px] leading-relaxed"
+              className="rounded-lg p-6 mb-8 border-l-4 text-[20px] leading-relaxed"
               style={{
                 backgroundColor: "var(--noir-medium)",
                 borderLeftColor: "var(--noir-sepia)",
@@ -495,7 +495,7 @@ export default function CasePage() {
                   type="button"
                   onClick={playBriefing}
                   disabled={briefingAudioLoading}
-                  className="flex h-[60px] min-h-[60px] w-[60px] min-w-[60px] items-center justify-center text-[32px] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-2"
+                  className="flex h-[56px] min-h-[56px] w-[56px] min-w-[56px] items-center justify-center text-[28px] transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-2"
                   style={{
                     background: "transparent",
                     border: "2px solid var(--noir-sepia)",
@@ -517,7 +517,7 @@ export default function CasePage() {
               </p>
               {briefingAudioMessage && (
                 <p
-                  className="mt-4 font-typewriter text-[18px]"
+                  className="mt-4 font-typewriter text-[16px]"
                   style={{ color: "var(--noir-sepia)" }}
                   role="status"
                   aria-live="polite"
@@ -532,7 +532,7 @@ export default function CasePage() {
                 startTimeRef.current = Date.now();
                 setStep("investigation");
               }}
-              className="w-full py-5 rounded-lg font-typewriter text-[22px] font-bold transition-all hover:opacity-90 focus-visible:outline-2"
+              className="w-full py-5 rounded-lg font-typewriter text-[20px] font-bold transition-all hover:opacity-90 focus-visible:outline-2"
               style={{
                 backgroundColor: "var(--noir-sepia)",
                 color: "var(--noir-dark)",
@@ -560,7 +560,7 @@ export default function CasePage() {
               <>
                 {caseData.is_tutorial && currentHint && (
                   <div
-                    className="mb-4 border-2 p-4 font-typewriter text-[20px] leading-relaxed"
+                    className="mb-4 border-2 p-4 font-typewriter text-[18px] leading-relaxed"
                     style={{
                       background: "var(--noir-red)",
                       borderColor: "var(--noir-sepia)",
@@ -654,7 +654,7 @@ export default function CasePage() {
               <p className="text-xl font-bold uppercase tracking-widest mb-2" style={{ color: "var(--noir-red)" }}>
                 Interrogation Phase
               </p>
-              <p className="text-[22px]">
+              <p className="text-[20px]">
                 You have a live scammer on the line, Detective. Ask questions to expose their lies.
                 Find all 3 inconsistencies to crack the case.
               </p>

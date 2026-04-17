@@ -25,7 +25,7 @@ export default function ArchivePage() {
     >
       <AudioController />
 
-      <div className="max-w-4xl mx-auto">
+      <div className="content-scale-down max-w-4xl mx-auto">
         <Link
           href="/cases"
           className="inline-flex min-h-[60px] items-center justify-center px-5 py-3 mb-8 text-xl font-bold transition-all hover:opacity-90 focus-visible:outline-2"

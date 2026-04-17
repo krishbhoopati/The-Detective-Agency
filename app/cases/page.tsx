@@ -58,7 +58,7 @@ export default function CasesPage() {
       <AudioController />
       <InformantChat onSendMessage={sendInformantMessage} />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="content-scale-down max-w-6xl mx-auto relative z-10">
         <Link
           href="/"
           className="inline-flex min-h-[60px] items-center gap-2 px-3 text-xl mb-8 hover:underline focus-visible:outline-2"

@@ -217,7 +217,7 @@ export default function MicButton({ pageContext }: { pageContext: string }) {
       onClick={handleClick}
       aria-label={label}
       title={label}
-      className="fixed right-5 top-5 z-50 flex h-[80px] w-[80px] items-center justify-center rounded-full border-4 text-[40px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
+      className="fixed right-4 top-4 z-50 flex h-[72px] w-[72px] items-center justify-center rounded-full border-4 text-[34px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
       style={{ borderColor, backgroundColor: "var(--noir-dark)", color, boxShadow, animation }}
     >
       {icon}
