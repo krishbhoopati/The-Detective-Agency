@@ -85,14 +85,14 @@ export default function Home() {
   };
 
   return (
-    <main className="page-fade-in w-full h-screen flex flex-col overflow-hidden">
-      <MicButton pageContext="On this screen you see The Detective's Desk. On the left is the Field Manual — tap it if you want to learn about AI and online scams. In the middle is the Rotary Phone — tap it to hear a briefing from the Chief and get started. On the right is the Evidence Board — tap it to pick a case and begin investigating. If this is your first time, tap the phone first." />
+    <main className="page-fade-in flex min-h-screen w-full flex-col overflow-hidden">
+      <MicButton pageContext="You are on The Detective's Desk — the main screen. On the left is the Field Manual, tap it to learn about AI and online scams. In the middle is the Rotary Phone, tap it to hear a briefing from the Chief and get started. On the right is the Evidence Board, tap it to pick a case and begin investigating. If this is your first time, tap the phone first. You can tap the microphone button at the top right at any time to ask anything." />
 
       {/* CRT Scanlines overlay */}
       <div className="scanlines absolute inset-0 pointer-events-none z-50" aria-hidden="true" />
 
       {/* ── Wall Section ── */}
-      <div className="h-[12vh] w-full bg-wall border-b-8 border-stone-900 relative z-0 flex items-center justify-center shrink-0">
+      <div className="relative z-0 flex min-h-[92px] w-full shrink-0 items-center justify-center border-b-8 border-stone-900 bg-wall px-4 py-4 sm:min-h-[104px]">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,7 +105,7 @@ export default function Home() {
       </div>
 
       {/* ── Desk Surface ── */}
-      <div className="flex-1 relative bg-wood-desk vignette-warm z-10 overflow-hidden">
+      <div className="relative z-10 flex-1 overflow-hidden bg-wood-desk vignette-warm">
         {/* Coffee ring decoration */}
         <div className="absolute bottom-8 left-8 w-24 h-24 rounded-full border-[6px] border-[#4a2e15] opacity-25 z-0" aria-hidden="true" />
 
@@ -126,20 +126,22 @@ export default function Home() {
         />
 
         {/* 3-Column Desk Objects */}
-        <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 sm:p-4 z-10">
-          {/* Left: Literacy Manual */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
-            <DeskTeletypeManual onClick={() => setShowLab(true)} />
-          </div>
+        <div className="absolute inset-0 z-10 overflow-y-auto px-4 py-6 sm:px-5 md:px-6 lg:px-8">
+          <div className="grid min-h-full grid-cols-1 items-center gap-10 pb-8 md:grid-cols-2 md:gap-y-12 xl:grid-cols-3 xl:gap-6 2xl:gap-10">
+            {/* Left: Literacy Manual */}
+            <div className="flex items-center justify-center [transform:scale(0.92)] min-[430px]:[transform:scale(1)] md:[transform:scale(1.08)] lg:[transform:scale(1.14)] xl:[transform:scale(1.08)] 2xl:[transform:scale(1.18)]">
+              <DeskTeletypeManual onClick={() => setShowLab(true)} />
+            </div>
 
-          {/* Middle: Rotary Phone (The Chief) */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
-            <DeskRotaryPhone onClick={openChiefDialog} />
-          </div>
+            {/* Middle: Rotary Phone (The Chief) */}
+            <div className="flex items-center justify-center [transform:scale(0.92)] min-[430px]:[transform:scale(1)] md:[transform:scale(1.08)] lg:[transform:scale(1.14)] xl:[transform:scale(1.08)] 2xl:[transform:scale(1.18)]">
+              <DeskRotaryPhone onClick={openChiefDialog} />
+            </div>
 
-          {/* Right: Evidence Board */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
-            <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
+            {/* Right: Evidence Board */}
+            <div className="flex items-center justify-center md:col-span-2 xl:col-span-1 [transform:scale(0.9)] min-[430px]:[transform:scale(0.98)] md:[transform:scale(1.04)] lg:[transform:scale(1.12)] xl:[transform:scale(1.04)] 2xl:[transform:scale(1.16)]">
+              <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
+            </div>
           </div>
         </div>
 
@@ -177,10 +179,10 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-[820px] max-h-[90vh] overflow-y-auto z-[61] pt-8"
+            className="relative z-[61] w-full max-w-[720px] max-h-[90vh] overflow-y-auto pt-7"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative bg-[#00008a] p-8 border-[6px] border-white shadow-retro-dialog">
+            <div className="relative border-[6px] border-white bg-[#00008a] p-5 shadow-retro-dialog sm:p-6">
               {/* Dialog Header */}
               <div className="absolute -top-7 left-6 bg-white px-5 py-2 border-[4px] border-black">
                 <span className="font-retro text-base text-black tracking-widest">THE CHIEF</span>
@@ -189,30 +191,30 @@ export default function Home() {
               {/* Close button */}
               <button
                 onClick={closeChiefDialog}
-                className="absolute top-3 right-3 w-14 h-14 bg-red-600 border-[4px] border-white text-white flex items-center justify-center hover:bg-red-500 font-bold text-2xl"
+                className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center border-[4px] border-white bg-red-600 text-lg font-bold text-white hover:bg-red-500 sm:h-12 sm:w-12"
                 aria-label="Close chief dialog"
               >
                 ✕
               </button>
 
               {/* Message */}
-              <p className="text-white text-3xl leading-[1.8] mt-6 font-sans font-medium">
+              <p className="mt-5 font-sans text-[1.15rem] font-medium leading-[1.65] text-white sm:text-[1.35rem]">
                 {displayedText}
                 {ttsPlaying && <span className="animate-pulse ml-0.5">|</span>}
               </p>
 
               {/* Actions */}
-              <div className="mt-8 flex flex-col gap-4">
+              <div className="mt-7 flex flex-col gap-3.5">
                 {/* Replay Button */}
                 <button
                   onClick={startBriefingPlayback}
-                  className="flex items-center justify-center gap-3 bg-black/50 border-4 border-yellow-400 px-6 py-4 hover:bg-yellow-500/20 transition-colors w-full"
+                  className="flex w-full items-center justify-center gap-3 border-4 border-yellow-400 bg-black/50 px-4 py-3 transition-colors hover:bg-yellow-500/20"
                   aria-label="Replay the Chief's briefing"
                 >
-                  <span className="text-2xl" aria-hidden="true">
+                  <span className="text-lg sm:text-xl" aria-hidden="true">
                     {ttsPlaying ? "🔊" : "📞"}
                   </span>
-                  <span className="font-retro text-yellow-300 text-sm tracking-widest">
+                  <span className="font-retro text-[0.7rem] tracking-widest text-yellow-300 sm:text-sm">
                     {ttsPlaying ? "PLAYING..." : "REPLAY BRIEFING"}
                   </span>
                 </button>
@@ -220,10 +222,10 @@ export default function Home() {
                 {/* Take a Case CTA */}
                 <button
                   onClick={() => router.push("/cases")}
-                  className="flex items-center justify-center bg-yellow-400 border-4 border-yellow-600 px-6 py-4 hover:bg-yellow-300 transition-colors w-full"
+                  className="flex w-full items-center justify-center border-4 border-yellow-600 bg-yellow-400 px-4 py-3 transition-colors hover:bg-yellow-300"
                   aria-label="Go to the cases page and take your first assignment"
                 >
-                  <span className="font-retro text-black text-sm tracking-widest">
+                  <span className="font-retro text-[0.7rem] tracking-widest text-black sm:text-sm">
                     START A CASE →
                   </span>
                 </button>

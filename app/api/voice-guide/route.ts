@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 import { assertGeminiConfigured, getGeminiFlash } from "@/lib/gemini";
 
-const SYSTEM_PROMPT = `You are a friendly helper for a detective-themed learning app. The user may be an older adult who is confused about what to do. In 2 to 3 short sentences, answer their question using only what is described about their current screen. Be warm, plain, and direct. Never use technical jargon. If they say they are lost, tell them what they can tap and what it will do.`;
+const SYSTEM_PROMPT = `You are the Chief — a wise, warm guide in a detective training app that teaches older adults to spot AI scams and phone fraud.
+
+Answer the user's exact question directly, using the screen context to give them the specific help they need right now. For navigation questions, tell them exactly what to tap. For questions about a task or clue, explain it in plain language. For strategy questions, give the single most important thing to do next. If the user says they are lost, tell them precisely what to do based on their current screen.
+
+Always answer in 2 to 4 spoken sentences — no more. No bullet points, no numbered lists, no markdown. Be warm, direct, and plain. Never use technical jargon. Never give a vague or generic answer.`;
 
 const FALLBACK = "I'm having a little trouble right now. Try tapping one of the items on your screen, and I'll be ready to help in a moment.";
 
@@ -23,11 +27,12 @@ export async function POST(req: NextRequest) {
 
     const model = getGeminiFlash(SYSTEM_PROMPT);
     const result = await model.generateContent(prompt);
-    const response = result.response.text().trim() || FALLBACK;
+    const raw = result.response.text().trim() || FALLBACK;
+    const response = raw.length > 600 ? raw.slice(0, 597) + "…" : raw;
 
     return Response.json({ response });
   } catch (err) {
     console.error("Voice guide error:", err);
-    return Response.json({ response: FALLBACK });
+    return Response.json({ response: FALLBACK, _debug: String(err) });
   }
 }

@@ -12,9 +12,9 @@ import CommendationCard from "@/components/CommendationCard";
 import InterrogationChat, {
   ConversationHistoryMessage,
 } from "@/components/InterrogationChat";
-import AudioController from "@/components/AudioController";
 import InformantChat, { InformantMessage } from "@/components/InformantChat";
 import PhoneSimulator from "@/components/PhoneSimulator";
+import MicButton from "@/components/MicButton";
 
 type Step = "briefing" | "investigation" | "deduction" | "interrogation" | "commendation";
 
@@ -348,7 +348,6 @@ export default function CasePage() {
         className="page-fade-in min-h-screen flex items-center justify-center px-5"
         style={{ backgroundColor: "var(--noir-dark)" }}
       >
-        <AudioController />
         <div className="max-w-xl text-center">
           <h1
             className="text-4xl font-bold mb-5"
@@ -375,7 +374,6 @@ export default function CasePage() {
         style={{ backgroundColor: "var(--noir-dark)" }}
         aria-label="Loading case"
       >
-        <AudioController />
         <p className="text-xl" style={{ color: "var(--noir-sepia)" }}>
           One moment, Detective...
         </p>
@@ -395,7 +393,18 @@ export default function CasePage() {
       className="page-fade-in min-h-screen px-4 py-10"
       style={{ backgroundColor: "var(--noir-dark)" }}
     >
-      <AudioController />
+      <MicButton pageContext={
+        `You are investigating the case "${caseData.title}" — a ${caseData.scam_type} scam scenario. ` +
+        (step === "briefing"
+          ? "The user is reading the case briefing. They should read it carefully and then tap Begin Investigation when they are ready to start."
+          : step === "investigation"
+          ? `The user is in the investigation phase, examining evidence for clues. They have found ${foundClues.length} out of ${caseData.hotspots.length} clues so far. They need to tap on suspicious parts of the evidence — things that look wrong, out of place, or like a red flag for a scam. ${foundClues.length < caseData.min_clues_to_deduce ? `They need to find at least ${caseData.min_clues_to_deduce} clues before they can move on.` : "They have found enough clues and can now tap Proceed to Deduction."}`
+          : step === "deduction"
+          ? "The user is building their deduction. They need to review the clues they found and choose who the scammer is and what technique was used. They should think about the evidence and pick the answer that best matches what they discovered."
+          : step === "interrogation"
+          ? "The user is interrogating the suspect in a live chat. They should ask pointed, specific questions to catch the suspect contradicting themselves or revealing their scam tactics. Look for inconsistencies and press on them."
+          : "The user has completed the case and is reading their commendation. They can return to Case Files to pick another case.")
+      } />
       <InformantChat
         caseContext={{ title: caseData.title, scam_type: caseData.scam_type }}
         onSendMessage={sendInformantMessage}

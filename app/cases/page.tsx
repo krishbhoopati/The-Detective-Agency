@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getAllCases } from "@/lib/case-loader";
 import { getArchive } from "@/lib/archive";
 import CaseFolder from "@/components/CaseFolder";
-import AudioController from "@/components/AudioController";
+import MicButton from "@/components/MicButton";
 import InformantChat, { InformantMessage } from "@/components/InformantChat";
 import { useEffect, useState } from "react";
 
@@ -55,7 +55,7 @@ export default function CasesPage() {
         backgroundSize: "56px 56px, 56px 56px, 100% 100%",
       }}
     >
-      <AudioController />
+      <MicButton pageContext="You are on the Case Files screen. You can see a list of detective cases to choose from. Tap any case folder to open it and begin your investigation. Solved cases are marked with a badge. If you are new, start with the first case at the top. You can tap the microphone button at any time to ask for help." />
       <InformantChat onSendMessage={sendInformantMessage} />
 
       <div className="max-w-6xl mx-auto relative z-10">

@@ -174,7 +174,7 @@ export default function PhoneSimulator({ steps, onComplete }: PhoneSimulatorProp
       </div>
 
       <div
-        className="mx-auto flex h-[580px] w-[320px] flex-col overflow-hidden rounded-[36px] border-[10px] shadow-2xl"
+        className="mx-auto flex aspect-[320/580] w-full max-w-[320px] flex-col overflow-hidden rounded-[36px] border-[10px] shadow-2xl"
         style={{
           borderColor: "#111",
           backgroundColor: "#111",

@@ -84,7 +84,7 @@ export default function InformantChat({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed right-0 top-1/2 z-50 flex min-h-[140px] -translate-y-1/2 items-center justify-center border-2 px-3 font-typewriter text-[16px] font-bold uppercase tracking-widest [writing-mode:vertical-rl]"
+          className="fixed bottom-4 right-3 z-50 flex min-h-[52px] items-center justify-center border-2 px-4 py-2 font-typewriter text-[14px] font-bold uppercase tracking-[0.18em] md:bottom-auto md:right-0 md:top-1/2 md:min-h-[116px] md:-translate-y-1/2 md:px-2 md:[writing-mode:vertical-rl]"
           style={{
             backgroundColor: "var(--noir-dark)",
             borderColor: "var(--noir-sepia)",
@@ -99,11 +99,11 @@ export default function InformantChat({
       <AnimatePresence>
         {isOpen && (
           <motion.aside
-            initial={{ x: 340 }}
+            initial={{ x: 296 }}
             animate={{ x: 0 }}
-            exit={{ x: 340 }}
+            exit={{ x: 296 }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed right-0 top-1/2 z-50 flex h-[480px] w-[320px] max-w-[calc(100vw-20px)] -translate-y-1/2 flex-col border-2 shadow-2xl"
+            className="fixed inset-x-3 bottom-3 z-50 flex h-[min(68vh,460px)] flex-col border-2 shadow-2xl md:inset-x-auto md:right-0 md:top-1/2 md:h-[420px] md:w-[280px] md:max-w-[calc(100vw-20px)] md:-translate-y-1/2"
             style={{
               backgroundColor: "var(--noir-dark)",
               borderColor: "var(--noir-sepia)",
@@ -115,13 +115,13 @@ export default function InformantChat({
               className="flex items-center justify-between border-b-2 p-3"
               style={{ borderColor: "var(--noir-sepia)" }}
             >
-              <h2 className="font-typewriter text-[20px] font-bold uppercase">
+              <h2 className="font-typewriter text-[17px] font-bold uppercase">
                 Informant
               </h2>
               <button
                 type="button"
                 onClick={closePanel}
-                className="flex h-12 w-12 items-center justify-center border-2 text-[24px]"
+                className="flex h-10 w-10 items-center justify-center border-2 text-[20px]"
                 style={{
                   borderColor: "var(--noir-sepia)",
                   color: "var(--noir-sepia)",
@@ -134,7 +134,7 @@ export default function InformantChat({
 
             <div className="flex-1 overflow-y-auto p-4">
               {messages.length === 0 ? (
-                <p className="text-[16px] leading-relaxed">
+                <p className="text-[14px] leading-relaxed">
                   The wire&apos;s open, Detective. Ask me anything about this case.
                 </p>
               ) : (
@@ -142,19 +142,19 @@ export default function InformantChat({
                   {messages.map((message, index) => (
                     <div key={`${message.role}-${index}`}>
                       <p
-                        className="mb-1 font-typewriter text-[16px] font-bold uppercase"
+                        className="mb-1 font-typewriter text-[14px] font-bold uppercase"
                         style={{ color: "var(--noir-sepia)" }}
                       >
                         {message.role === "user" ? "DETECTIVE:" : "INFORMANT:"}
                       </p>
-                      <p className="text-[16px] leading-relaxed">{message.content}</p>
+                      <p className="text-[14px] leading-relaxed">{message.content}</p>
                     </div>
                   ))}
                 </div>
               )}
               {isSending && (
                 <p
-                  className="mt-4 text-[16px] italic"
+                  className="mt-4 text-[14px] italic"
                   style={{ color: "var(--text-on-dark-muted)" }}
                 >
                   INFORMANT: Checking the files...
@@ -178,7 +178,7 @@ export default function InformantChat({
                   onChange={(event) => setInput(event.target.value)}
                   placeholder="Ask the Informant..."
                   disabled={isSending}
-                  className="min-h-[48px] min-w-0 flex-1 border-2 px-3 text-[16px]"
+                  className="min-h-[42px] min-w-0 flex-1 border-2 px-3 text-[14px]"
                   style={{
                     backgroundColor: "var(--noir-cream)",
                     borderColor: "var(--noir-sepia)",
@@ -188,7 +188,7 @@ export default function InformantChat({
                 <button
                   type="submit"
                   disabled={!input.trim() || isSending}
-                  className="min-h-[48px] min-w-[60px] border-2 px-3 font-typewriter text-[16px] font-bold uppercase disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-[42px] min-w-[52px] border-2 px-3 font-typewriter text-[14px] font-bold uppercase disabled:cursor-not-allowed disabled:opacity-50"
                   style={{
                     borderColor: "var(--noir-sepia)",
                     backgroundColor: "var(--noir-sepia)",

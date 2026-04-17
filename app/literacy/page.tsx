@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import AudioController from "@/components/AudioController";
 
 const SECTIONS = [
   {
@@ -109,8 +108,6 @@ export default function LiteracyPage() {
       className="page-fade-in min-h-screen"
       style={{ backgroundColor: "var(--noir-dark)", color: "var(--noir-cream)" }}
     >
-      <AudioController />
-
       {/* Header */}
       <div
         className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b-2"

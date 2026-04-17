@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getArchive, ArchiveEntry } from "@/lib/archive";
-import AudioController from "@/components/AudioController";
 
 export default function ArchivePage() {
   const [entries, setEntries] = useState<ArchiveEntry[]>([]);
@@ -23,8 +22,6 @@ export default function ArchivePage() {
           "radial-gradient(ellipse at top, rgba(200,169,110,0.1), transparent 46%), linear-gradient(135deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 18px)",
       }}
     >
-      <AudioController />
-
       <div className="max-w-4xl mx-auto">
         <Link
           href="/cases"
