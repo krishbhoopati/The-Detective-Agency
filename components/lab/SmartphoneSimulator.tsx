@@ -16,7 +16,6 @@ import {
   Phone,
   Video,
   PhoneOff,
-  Send,
   Sparkles,
   Info,
   Sun,

@@ -3,11 +3,47 @@
 import { useRef, useState } from "react";
 
 type State = "idle" | "listening" | "thinking" | "speaking";
+type BrowserSpeechRecognitionAlternative = {
+  transcript: string;
+  confidence: number;
+};
+
+type BrowserSpeechRecognitionResult = {
+  0: BrowserSpeechRecognitionAlternative;
+  isFinal: boolean;
+  length: number;
+};
+
+type BrowserSpeechRecognitionResultList = {
+  0: BrowserSpeechRecognitionResult;
+  length: number;
+};
+
+type BrowserSpeechRecognitionEvent = Event & {
+  results: BrowserSpeechRecognitionResultList;
+};
+
+type BrowserSpeechRecognitionErrorEvent = Event & {
+  error: string;
+};
+
+type BrowserSpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: BrowserSpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  abort: () => void;
+};
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
   }
 }
 
@@ -16,7 +52,7 @@ export default function MicButton({ pageContext }: { pageContext: string }) {
   // Audio element created during the click (user gesture) so autoplay is unlocked
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const cancelledRef = useRef(false);
 
   const stopAudio = () => {
@@ -181,7 +217,7 @@ export default function MicButton({ pageContext }: { pageContext: string }) {
       onClick={handleClick}
       aria-label={label}
       title={label}
-      className="fixed right-5 top-5 z-50 flex h-[80px] w-[80px] items-center justify-center rounded-full border-4 text-[40px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
+      className="fixed right-4 top-4 z-50 flex h-[68px] w-[68px] items-center justify-center rounded-full border-4 text-[30px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
       style={{ borderColor, backgroundColor: "var(--noir-dark)", color, boxShadow, animation }}
     >
       {icon}

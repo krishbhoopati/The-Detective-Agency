@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Detective Agency
 
-## Getting Started
+The Detective Agency is a noir-styled Next.js training app that helps older adults practice spotting digital scams and build confidence with modern technology. Players move through detective cases, question scammer personas, use an AI "Informant" for help, and work through guided smartphone exercises in The Lab.
 
-First, run the development server:
+## Features
+
+- Desk-style home screen with a Chief briefing, evidence board, and field manual
+- Case browser backed by JSON case files in `data/`
+- Interactive investigations with evidence review, deduction building, and scam interrogation
+- AI-powered helper routes for interrogations, informant chat, lab tutoring, commendations, and voice guidance
+- Digital literacy content in the LLM Field Manual
+- The Lab, a guided phone simulator for hands-on smartphone and AI practice
+- Solved-case archive stored in the browser
+
+## Tech Stack
+
+- Next.js 14 App Router
+- React 18 + TypeScript
+- Tailwind CSS
+- Framer Motion
+- Google Gemini API
+- ElevenLabs API
+
+## Local Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create a local env file:
+
+```bash
+cp .env.local.example .env.local
+```
+
+3. Add the required keys to `.env.local`:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+```
+
+4. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` starts the development server
+- `npm run build` creates a production build
+- `npm run start` runs the production server
+- `npm run lint` runs the Next.js linter
 
-## Learn More
+## App Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `/` detective desk landing screen
+- `/cases` case selection and Informant chat
+- `/case/[id]` individual investigation flow
+- `/archive` solved case archive
+- `/literacy` LLM Field Manual
+- `/lab` standalone Lab experience
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/api/interrogate` Gemini-backed scammer simulation
+- `/api/informant` Gemini-backed analyst chat
+- `/api/lab-tutor` Gemini-backed lab tutor
+- `/api/commendation` post-case commendation generator
+- `/api/voice-guide` short contextual guidance for the current screen
+- `/api/tts` ElevenLabs text-to-speech
 
-## Deploy on Vercel
+## Content and Assets
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Case content lives in `data/case-*.json`
+- Lab scenarios live in `lib/lab-scenarios.ts`
+- Pre-generated audio assets live in `public/audio/`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- The app expects valid Gemini credentials for most AI interactions.
+- `ELEVENLABS_API_KEY` is only required for the `/api/tts` route.
+- Solved cases are tracked client-side, and the home screen currently clears archive progress on reload for testing.

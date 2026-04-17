@@ -34,6 +34,9 @@ class LabErrorBoundary extends React.Component<
 const CHIEF_SCRIPT =
   "Welcome, Detective. Here is how it works. Click the Evidence Board to pick a case. Read the briefing, then look through the evidence to find the clues. Once you have found enough, name the scam and close the case. If you need help understanding AI or online tricks, open the Field Manual first. Ready for your next assignment? Pick up this phone. The city needs you.";
 
+// Tiny pull from the remote small-changes branch: its sweep easing profile.
+const SWEEP_TRANSITION = { duration: 0.38, ease: [0.4, 0, 0.6, 1] as const };
+
 export default function Home() {
   const router = useRouter();
   const [showChiefDialog, setShowChiefDialog] = useState(false);
@@ -128,17 +131,17 @@ export default function Home() {
         {/* 3-Column Desk Objects */}
         <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 sm:p-4 z-10">
           {/* Left: Literacy Manual */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
+          <div className="flex items-center justify-center scale-[1.52] origin-center">
             <DeskTeletypeManual onClick={() => setShowLab(true)} />
           </div>
 
           {/* Middle: Rotary Phone (The Chief) */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
+          <div className="flex items-center justify-center scale-[1.52] origin-center">
             <DeskRotaryPhone onClick={openChiefDialog} />
           </div>
 
           {/* Right: Evidence Board */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
+          <div className="flex items-center justify-center scale-[1.52] origin-center">
             <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
           </div>
         </div>
@@ -151,7 +154,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 16 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              transition={SWEEP_TRANSITION}
               className="absolute inset-0 z-20 flex flex-col overflow-hidden"
             >
               <LabErrorBoundary onError={() => setShowLab(false)}>
@@ -177,10 +180,10 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-[820px] max-h-[90vh] overflow-y-auto z-[61] pt-8"
+            className="relative w-full max-w-[680px] max-h-[90vh] overflow-y-auto z-[61] pt-7"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative bg-[#00008a] p-8 border-[6px] border-white shadow-retro-dialog">
+            <div className="relative bg-[#00008a] p-6 border-[6px] border-white shadow-retro-dialog">
               {/* Dialog Header */}
               <div className="absolute -top-7 left-6 bg-white px-5 py-2 border-[4px] border-black">
                 <span className="font-retro text-base text-black tracking-widest">THE CHIEF</span>
@@ -189,27 +192,27 @@ export default function Home() {
               {/* Close button */}
               <button
                 onClick={closeChiefDialog}
-                className="absolute top-3 right-3 w-14 h-14 bg-red-600 border-[4px] border-white text-white flex items-center justify-center hover:bg-red-500 font-bold text-2xl"
+                className="absolute top-3 right-3 w-11 h-11 bg-red-600 border-[4px] border-white text-white flex items-center justify-center hover:bg-red-500 font-bold text-lg"
                 aria-label="Close chief dialog"
               >
                 ✕
               </button>
 
               {/* Message */}
-              <p className="text-white text-3xl leading-[1.8] mt-6 font-sans font-medium">
+              <p className="text-white text-[1.35rem] leading-[1.65] mt-5 font-sans font-medium">
                 {displayedText}
                 {ttsPlaying && <span className="animate-pulse ml-0.5">|</span>}
               </p>
 
               {/* Actions */}
-              <div className="mt-8 flex flex-col gap-4">
+              <div className="mt-7 flex flex-col gap-3.5">
                 {/* Replay Button */}
                 <button
                   onClick={startBriefingPlayback}
-                  className="flex items-center justify-center gap-3 bg-black/50 border-4 border-yellow-400 px-6 py-4 hover:bg-yellow-500/20 transition-colors w-full"
+                  className="flex items-center justify-center gap-3 bg-black/50 border-4 border-yellow-400 px-4 py-3 hover:bg-yellow-500/20 transition-colors w-full"
                   aria-label="Replay the Chief's briefing"
                 >
-                  <span className="text-2xl" aria-hidden="true">
+                  <span className="text-lg" aria-hidden="true">
                     {ttsPlaying ? "🔊" : "📞"}
                   </span>
                   <span className="font-retro text-yellow-300 text-sm tracking-widest">
@@ -220,7 +223,7 @@ export default function Home() {
                 {/* Take a Case CTA */}
                 <button
                   onClick={() => router.push("/cases")}
-                  className="flex items-center justify-center bg-yellow-400 border-4 border-yellow-600 px-6 py-4 hover:bg-yellow-300 transition-colors w-full"
+                  className="flex items-center justify-center bg-yellow-400 border-4 border-yellow-600 px-4 py-3 hover:bg-yellow-300 transition-colors w-full"
                   aria-label="Go to the cases page and take your first assignment"
                 >
                   <span className="font-retro text-black text-sm tracking-widest">

@@ -72,7 +72,7 @@ export function LabContent({ onClose }: LabContentProps) {
             <button
               type="button"
               onClick={onClose}
-              className="border-2 px-5 py-3 font-typewriter text-[22px] uppercase transition-opacity hover:opacity-75 shrink-0"
+              className="border-2 px-4 py-2 font-typewriter text-[18px] uppercase transition-opacity hover:opacity-75 shrink-0"
               style={{
                 borderColor: "var(--noir-sepia)",
                 color: "var(--noir-sepia)",
@@ -85,12 +85,12 @@ export function LabContent({ onClose }: LabContentProps) {
           )}
           <div>
             <h1
-              className="font-typewriter text-[32px] font-bold uppercase tracking-widest"
+              className="font-typewriter text-[25px] font-bold uppercase tracking-widest"
               style={{ color: "var(--noir-sepia)" }}
             >
               The Lab
             </h1>
-            <p className="font-typewriter text-[18px]" style={{ color: "var(--noir-cream)", opacity: 0.6 }}>
+            <p className="font-typewriter text-[15px]" style={{ color: "var(--noir-cream)", opacity: 0.6 }}>
               Interactive Digital Literacy Training
             </p>
           </div>
@@ -122,7 +122,7 @@ export function LabContent({ onClose }: LabContentProps) {
         className="relative flex flex-col items-center justify-center overflow-hidden"
         style={{ width: "58%", backgroundColor: "rgba(0,0,0,0.3)" }}
       >
-        <div style={{ transform: "scale(1.18)", transformOrigin: "center center" }}>
+        <div style={{ transform: "scale(0.98)", transformOrigin: "center center" }}>
           <LabPhoneSimulator
             scenario={scenario}
             currentStepIndex={currentStepIndex}

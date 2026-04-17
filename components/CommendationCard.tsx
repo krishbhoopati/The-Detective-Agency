@@ -57,7 +57,7 @@ export default function CommendationCard({
         <motion.p
           animate={{ opacity: [0.45, 1, 0.45] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="font-typewriter text-[28px]"
+          className="font-typewriter text-[24px]"
           style={{ color: "var(--noir-sepia)" }}
           role="status"
           aria-live="polite"
@@ -78,16 +78,16 @@ export default function CommendationCard({
             initial={{ rotate: -12, scale: 1.4, opacity: 0 }}
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 230, damping: 14 }}
-            className="mx-auto mb-5 inline-block border-4 px-7 py-3 font-typewriter text-[32px] font-bold uppercase tracking-widest"
+            className="mx-auto mb-5 inline-block border-4 px-6 py-3 font-typewriter text-[28px] font-bold uppercase tracking-widest"
             style={{ borderColor: "var(--noir-red)", color: "var(--noir-red)" }}
           >
             CASE CLOSED
           </motion.div>
 
-          <h2 className="mb-6 text-[28px] font-bold leading-tight">{caseTitle}</h2>
+          <h2 className="mb-6 text-[26px] font-bold leading-tight">{caseTitle}</h2>
 
           <div
-            className="min-h-[150px] border-l-4 p-5 text-left text-[22px] italic leading-relaxed"
+            className="min-h-[140px] border-l-4 p-5 text-left text-[20px] italic leading-relaxed"
             style={{
               borderLeftColor: "var(--noir-sepia)",
               backgroundColor: "rgba(200, 169, 110, 0.14)",
@@ -108,7 +108,7 @@ export default function CommendationCard({
               <button
                 type="button"
                 onClick={onAddToArchive}
-                className="w-full font-typewriter text-[22px] font-bold uppercase transition-transform duration-200 hover:-translate-y-0.5"
+                className="w-full font-typewriter text-[20px] font-bold uppercase transition-transform duration-200 hover:-translate-y-0.5"
                 style={{
                   minHeight: "64px",
                   backgroundColor: "var(--noir-sepia)",
@@ -121,7 +121,7 @@ export default function CommendationCard({
               <button
                 type="button"
                 onClick={onReturnToCases}
-                className="mt-4 inline-flex min-h-[60px] items-center justify-center px-3 text-[20px] underline-offset-4 hover:underline"
+                className="mt-4 inline-flex min-h-[56px] items-center justify-center px-3 text-[18px] underline-offset-4 hover:underline"
                 style={{ color: "var(--text-on-paper-secondary)" }}
               >
                 Return to Cases

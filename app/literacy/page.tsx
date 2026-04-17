@@ -133,95 +133,97 @@ export default function LiteracyPage() {
         </div>
       </div>
 
-      {/* Page Title */}
-      <div className="max-w-2xl mx-auto px-5 pt-10 pb-6">
-        <div
-          className="inline-block border-2 px-4 py-2 text-sm font-bold uppercase mb-6"
-          style={{ borderColor: "var(--noir-sepia)", color: "var(--noir-sepia)" }}
-        >
-          Digital Crimes Division
+      <div className="content-scale-down">
+        {/* Page Title */}
+        <div className="max-w-2xl mx-auto px-5 pt-10 pb-6">
+          <div
+            className="inline-block border-2 px-4 py-2 text-sm font-bold uppercase mb-6"
+            style={{ borderColor: "var(--noir-sepia)", color: "var(--noir-sepia)" }}
+          >
+            Digital Crimes Division
+          </div>
+          <h1
+            className="font-typewriter text-4xl sm:text-5xl font-bold leading-tight mb-4"
+            style={{ color: "var(--noir-sepia)" }}
+          >
+            The LLM Field Manual
+          </h1>
+          <p className="text-xl leading-relaxed" style={{ color: "var(--noir-cream)" }}>
+            Everything you need to understand AI, spot digital scams, and protect the people
+            who rely on you.
+          </p>
         </div>
-        <h1
-          className="font-typewriter text-4xl sm:text-5xl font-bold leading-tight mb-4"
-          style={{ color: "var(--noir-sepia)" }}
-        >
-          The LLM Field Manual
-        </h1>
-        <p className="text-xl leading-relaxed" style={{ color: "var(--noir-cream)" }}>
-          Everything you need to understand AI, spot digital scams, and protect the people
-          who rely on you.
-        </p>
-      </div>
 
-      {/* Accordion Sections */}
-      <div className="max-w-2xl mx-auto px-5 pb-16 space-y-4">
-        {SECTIONS.map((section) => {
-          const isOpen = openSection === section.id;
-          return (
-            <div
-              key={section.id}
-              className="border-2"
-              style={{ borderColor: isOpen ? "var(--noir-sepia)" : "var(--noir-medium)" }}
-            >
-              <button
-                type="button"
-                onClick={() => setOpenSection(isOpen ? null : section.id)}
-                className="w-full flex items-center justify-between px-6 py-5 text-left transition-colors"
-                style={{
-                  backgroundColor: isOpen ? "rgba(200,169,110,0.12)" : "var(--noir-medium)",
-                  color: isOpen ? "var(--noir-sepia)" : "var(--noir-cream)",
-                }}
-                aria-expanded={isOpen}
+        {/* Accordion Sections */}
+        <div className="max-w-2xl mx-auto px-5 pb-16 space-y-4">
+          {SECTIONS.map((section) => {
+            const isOpen = openSection === section.id;
+            return (
+              <div
+                key={section.id}
+                className="border-2"
+                style={{ borderColor: isOpen ? "var(--noir-sepia)" : "var(--noir-medium)" }}
               >
-                <span className="flex items-center gap-3 font-typewriter text-xl sm:text-2xl font-bold">
-                  <span aria-hidden="true">{section.icon}</span>
-                  {section.title}
-                </span>
-                <span
-                  className="font-retro text-xs transition-transform duration-300"
-                  style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}
-                  aria-hidden="true"
-                >
-                  ▶
-                </span>
-              </button>
-
-              {isOpen && (
-                <div
-                  className="px-6 py-6 text-xl leading-relaxed border-t-2"
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(isOpen ? null : section.id)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left transition-colors"
                   style={{
-                    borderColor: "var(--noir-sepia)",
-                    color: "var(--noir-cream)",
+                    backgroundColor: isOpen ? "rgba(200,169,110,0.12)" : "var(--noir-medium)",
+                    color: isOpen ? "var(--noir-sepia)" : "var(--noir-cream)",
                   }}
+                  aria-expanded={isOpen}
                 >
-                  {section.content}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                  <span className="flex items-center gap-3 font-typewriter text-xl sm:text-2xl font-bold">
+                    <span aria-hidden="true">{section.icon}</span>
+                    {section.title}
+                  </span>
+                  <span
+                    className="font-retro text-xs transition-transform duration-300"
+                    style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+                    aria-hidden="true"
+                  >
+                    ▶
+                  </span>
+                </button>
 
-      {/* Footer CTA */}
-      <div
-        className="max-w-2xl mx-auto px-5 pb-16 text-center"
-      >
-        <p className="font-typewriter text-xl mb-6" style={{ color: "var(--noir-cream)" }}>
-          Ready to put your knowledge to the test?
-        </p>
-        <button
-          type="button"
-          onClick={() => router.push("/cases")}
-          className="inline-flex items-center justify-center px-10 py-5 font-typewriter text-xl font-bold transition-all hover:translate-y-[-2px] hover:shadow-2xl focus-visible:outline-2"
-          style={{
-            backgroundColor: "var(--noir-sepia)",
-            color: "var(--noir-dark)",
-            boxShadow: "0 4px 30px rgba(200, 169, 110, 0.3)",
-          }}
-          aria-label="Go to case browser and take a case"
+                {isOpen && (
+                  <div
+                    className="px-6 py-6 text-xl leading-relaxed border-t-2"
+                    style={{
+                      borderColor: "var(--noir-sepia)",
+                      color: "var(--noir-cream)",
+                    }}
+                  >
+                    {section.content}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer CTA */}
+        <div
+          className="max-w-2xl mx-auto px-5 pb-16 text-center"
         >
-          Take a Case →
-        </button>
+          <p className="font-typewriter text-xl mb-6" style={{ color: "var(--noir-cream)" }}>
+            Ready to put your knowledge to the test?
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/cases")}
+            className="inline-flex items-center justify-center px-10 py-5 font-typewriter text-xl font-bold transition-all hover:translate-y-[-2px] hover:shadow-2xl focus-visible:outline-2"
+            style={{
+              backgroundColor: "var(--noir-sepia)",
+              color: "var(--noir-dark)",
+              boxShadow: "0 4px 30px rgba(200, 169, 110, 0.3)",
+            }}
+            aria-label="Go to case browser and take a case"
+          >
+            Take a Case →
+          </button>
+        </div>
       </div>
     </main>
   );
