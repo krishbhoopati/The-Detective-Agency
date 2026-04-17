@@ -9,10 +9,13 @@ interface DeskRotaryPhoneProps {
 }
 
 export function DeskRotaryPhone({ className = "", onClick }: DeskRotaryPhoneProps) {
-  const [isRinging, setIsRinging] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return sessionStorage.getItem("phoneAnswered") !== "true";
-  });
+  const [isRinging, setIsRinging] = useState(true);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("phoneAnswered") === "true") {
+      setIsRinging(false);
+    }
+  }, []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

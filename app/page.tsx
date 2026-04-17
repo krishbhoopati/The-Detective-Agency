@@ -42,6 +42,7 @@ export default function Home() {
   // Reset solved cases on each reload (testing mode)
   useEffect(() => {
     clearArchive();
+    sessionStorage.removeItem("phoneAnswered");
   }, []);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const [displayedText, setDisplayedText] = useState("");
@@ -126,20 +127,20 @@ export default function Home() {
         />
 
         {/* 3-Column Desk Objects */}
-        <div className="absolute inset-0 z-10 overflow-y-auto px-4 py-6 sm:px-5 md:px-6 lg:px-8">
-          <div className="grid min-h-full grid-cols-1 items-center gap-10 pb-8 md:grid-cols-2 md:gap-y-12 xl:grid-cols-3 xl:gap-6 2xl:gap-10">
+        <div className="absolute inset-0 z-10 overflow-y-auto overflow-x-hidden px-2 py-4 sm:px-3 md:px-4 lg:px-6">
+          <div className="grid min-h-full grid-cols-1 items-center gap-10 pb-10 md:grid-cols-2 md:gap-y-20 xl:grid-cols-3 xl:gap-6 2xl:gap-10">
             {/* Left: Literacy Manual */}
-            <div className="flex items-center justify-center [transform:scale(0.92)] min-[430px]:[transform:scale(1)] md:[transform:scale(1.08)] lg:[transform:scale(1.14)] xl:[transform:scale(1.08)] 2xl:[transform:scale(1.18)]">
+            <div className="flex items-center justify-center [transform:scale(0.88)] min-[430px]:[transform:scale(1.00)] md:[transform:scale(1.08)] lg:[transform:scale(1.18)] xl:[transform:scale(1.25)] 2xl:[transform:scale(1.38)]">
               <DeskTeletypeManual onClick={() => setShowLab(true)} />
             </div>
 
             {/* Middle: Rotary Phone (The Chief) */}
-            <div className="flex items-center justify-center [transform:scale(0.92)] min-[430px]:[transform:scale(1)] md:[transform:scale(1.08)] lg:[transform:scale(1.14)] xl:[transform:scale(1.08)] 2xl:[transform:scale(1.18)]">
+            <div className="flex items-center justify-center [transform:scale(0.88)] min-[430px]:[transform:scale(1.00)] md:[transform:scale(1.08)] lg:[transform:scale(1.18)] xl:[transform:scale(1.25)] 2xl:[transform:scale(1.38)]">
               <DeskRotaryPhone onClick={openChiefDialog} />
             </div>
 
             {/* Right: Evidence Board */}
-            <div className="flex items-center justify-center md:col-span-2 xl:col-span-1 [transform:scale(0.9)] min-[430px]:[transform:scale(0.98)] md:[transform:scale(1.04)] lg:[transform:scale(1.12)] xl:[transform:scale(1.04)] 2xl:[transform:scale(1.16)]">
+            <div className="flex items-center justify-center md:col-span-2 xl:col-span-1 [transform:scale(0.86)] min-[430px]:[transform:scale(0.98)] md:[transform:scale(1.05)] lg:[transform:scale(1.15)] xl:[transform:scale(1.22)] 2xl:[transform:scale(1.35)]">
               <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
             </div>
           </div>
