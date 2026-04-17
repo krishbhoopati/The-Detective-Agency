@@ -22,5 +22,9 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "16ed770b-7532-4fec-b055-a6ba4eaddfd7"]
+  "exclude": [
+    "node_modules",
+    "02ac20c1-240f-4e8e-add6-efee31e4e4be",
+    "16ed770b-7532-4fec-b055-a6ba4eaddfd7"
+  ]
 }

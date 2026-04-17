@@ -3,11 +3,47 @@
 import { useRef, useState } from "react";
 
 type State = "idle" | "listening" | "thinking" | "speaking";
+type BrowserSpeechRecognitionAlternative = {
+  transcript: string;
+  confidence: number;
+};
+
+type BrowserSpeechRecognitionResult = {
+  0: BrowserSpeechRecognitionAlternative;
+  isFinal: boolean;
+  length: number;
+};
+
+type BrowserSpeechRecognitionResultList = {
+  0: BrowserSpeechRecognitionResult;
+  length: number;
+};
+
+type BrowserSpeechRecognitionEvent = Event & {
+  results: BrowserSpeechRecognitionResultList;
+};
+
+type BrowserSpeechRecognitionErrorEvent = Event & {
+  error: string;
+};
+
+type BrowserSpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: BrowserSpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  abort: () => void;
+};
+
+type BrowserSpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition?: BrowserSpeechRecognitionConstructor;
+    webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor;
   }
 }
 
@@ -16,7 +52,7 @@ export default function MicButton({ pageContext }: { pageContext: string }) {
   // Audio element created during the click (user gesture) so autoplay is unlocked
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const cancelledRef = useRef(false);
 
   const stopAudio = () => {
