@@ -8,7 +8,9 @@ import { DeskRotaryPhone } from "@/components/DeskRotaryPhone";
 import { DeskEvidenceRecorder } from "@/components/DeskEvidenceRecorder";
 import { DeskTeletypeManual } from "@/components/DeskTeletypeManual";
 import { LabContent } from "@/components/lab/LabContent";
-import { clearArchive } from "@/lib/archive";
+import { getAllCases } from "@/lib/case-loader";
+import { clearArchive, getArchive } from "@/lib/archive";
+import CaseFolder from "@/components/CaseFolder";
 
 class LabErrorBoundary extends React.Component<
   { children: React.ReactNode; onError: () => void },
@@ -34,23 +36,45 @@ class LabErrorBoundary extends React.Component<
 const CHIEF_SCRIPT =
   "Welcome, Detective. Here is how it works. Click the Evidence Board to pick a case. Read the briefing, then look through the evidence to find the clues. Once you have found enough, name the scam and close the case. If you need help understanding AI or online tricks, open the Field Manual first. Ready for your next assignment? Pick up this phone. The city needs you.";
 
+const SWEEP_TRANSITION = { duration: 0.38, ease: [0.4, 0, 0.6, 1] as const };
+
 export default function Home() {
   const router = useRouter();
+  const cases = getAllCases();
   const [showChiefDialog, setShowChiefDialog] = useState(false);
   const [showLab, setShowLab] = useState(false);
+  const [showCases, setShowCases] = useState(false);
+  const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
+  const [checkedTutorial, setCheckedTutorial] = useState(false);
 
   // Reset solved cases on each reload (testing mode)
   useEffect(() => {
     clearArchive();
   }, []);
+
+  // Load archive data and check tutorial when cases view opens
+  useEffect(() => {
+    if (!showCases) return;
+    const archive = getArchive();
+    setSolvedIds(new Set(archive.map((e) => e.case_id)));
+    if (!localStorage.getItem("tutorial_complete")) {
+      router.push("/case/case-000");
+      return;
+    }
+    setCheckedTutorial(true);
+  }, [showCases, router]);
+
   const [ttsLoading, setTtsLoading] = useState(false);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioBlobUrl = useRef<string | null>(null);
 
-  const openChiefDialog = () => {
-    setShowChiefDialog(true);
+  const handleCloseCases = () => {
+    setShowCases(false);
+    setCheckedTutorial(false);
   };
+
+  const openChiefDialog = () => setShowChiefDialog(true);
 
   const closeChiefDialog = () => {
     audioRef.current?.pause();
@@ -63,7 +87,6 @@ export default function Home() {
   const playChiefBriefing = async () => {
     if (ttsLoading) return;
 
-    // Replay cached audio if available
     if (audioBlobUrl.current) {
       audioRef.current?.pause();
       const audio = new Audio(audioBlobUrl.current);
@@ -140,23 +163,101 @@ export default function Home() {
           aria-hidden="true"
         />
 
-        {/* 3-Column Desk Objects */}
-        <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 sm:p-4 z-10">
-          {/* Left: Literacy Manual */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
+        {/* 3-Column Desk Objects — sweep off when cases open */}
+        <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2 sm:p-4 z-10 pointer-events-none">
+          {/* Left: Literacy Manual — sweeps left */}
+          <motion.div
+            className="flex items-center justify-center origin-center pointer-events-auto"
+            initial={{ scale: 1.8 }}
+            animate={{ scale: 1.8, x: showCases ? "-160%" : 0, opacity: showCases ? 0 : 1 }}
+            transition={{ ...SWEEP_TRANSITION, delay: showCases ? 0 : 0.15 }}
+          >
             <DeskTeletypeManual onClick={() => setShowLab(true)} />
-          </div>
+          </motion.div>
 
-          {/* Middle: Rotary Phone (The Chief) */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
+          {/* Middle: Rotary Phone — sweeps up */}
+          <motion.div
+            className="flex items-center justify-center origin-center pointer-events-auto"
+            initial={{ scale: 1.8 }}
+            animate={{ scale: 1.8, y: showCases ? "-160%" : 0, opacity: showCases ? 0 : 1 }}
+            transition={{ ...SWEEP_TRANSITION, delay: showCases ? 0.06 : 0.08 }}
+          >
             <DeskRotaryPhone onClick={openChiefDialog} />
-          </div>
+          </motion.div>
 
-          {/* Right: Evidence Board */}
-          <div className="flex items-center justify-center scale-[1.8] origin-center">
-            <DeskEvidenceRecorder onClick={() => router.push("/cases")} />
-          </div>
+          {/* Right: Evidence Board — sweeps right */}
+          <motion.div
+            className="flex items-center justify-center origin-center pointer-events-auto"
+            initial={{ scale: 1.8 }}
+            animate={{ scale: 1.8, x: showCases ? "160%" : 0, opacity: showCases ? 0 : 1 }}
+            transition={{ ...SWEEP_TRANSITION, delay: showCases ? 0.12 : 0 }}
+          >
+            <DeskEvidenceRecorder onClick={() => setShowCases(true)} />
+          </motion.div>
         </div>
+
+        {/* ── Cases laid on the desk ── */}
+        <AnimatePresence>
+          {showCases && (
+            <motion.div
+              key="cases-on-desk"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ delay: 0.32, duration: 0.35, ease: "easeOut" }}
+              className="absolute inset-0 z-20 overflow-auto px-5 py-10"
+            >
+              <div className="max-w-6xl mx-auto relative z-10">
+              {/* Back button */}
+              <button
+                onClick={handleCloseCases}
+                className="inline-flex min-h-[60px] items-center gap-2 px-3 text-xl mb-8 hover:underline focus-visible:outline-2"
+                style={{ color: "var(--noir-sepia)" }}
+              >
+                ← Desk
+              </button>
+
+              <div className="mb-12">
+              <h2
+                className="text-4xl sm:text-5xl font-bold mb-4 uppercase"
+                style={{ color: "var(--noir-sepia)" }}
+              >
+                OPEN CASES
+              </h2>
+              <p className="text-[22px]" style={{ color: "var(--noir-cream)" }}>
+                Choose your assignment, Detective.
+              </p>
+              </div>
+
+              {checkedTutorial ? (
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                  {cases.map((c, i) => (
+                    <motion.div
+                      key={c.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.38 + i * 0.07, duration: 0.3, ease: "easeOut" }}
+                    >
+                      <CaseFolder
+                        case_id={c.id}
+                        title={c.title}
+                        scam_type={c.scam_type}
+                        isCompleted={solvedIds.has(c.id)}
+                        isTutorial={c.is_tutorial}
+                        onClick={() => router.push(`/case/${c.id}`)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[22px]" style={{ color: "var(--noir-cream)" }}>
+                  Opening your first assignment...
+                </p>
+              )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Lab Panel (opens within desk area) ── */}
         <AnimatePresence>
