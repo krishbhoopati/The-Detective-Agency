@@ -71,7 +71,7 @@ export default function AudioController() {
       onClick={toggleMute}
       aria-label={muted ? "Unmute background audio" : "Mute background audio"}
       title={muted ? "Unmute background audio" : "Mute background audio"}
-      className="fixed right-14 top-4 z-50 flex h-[44px] w-[44px] items-center justify-center rounded-full border-2 text-[20px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
+      className="fixed right-14 top-4 z-50 flex h-[40px] w-[40px] items-center justify-center rounded-full border-2 text-[18px] transition-transform duration-200 hover:scale-105 focus-visible:outline-2"
       style={{
         borderColor: "var(--noir-sepia)",
         backgroundColor: "var(--noir-dark)",
